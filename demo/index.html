@@ -13,23 +13,28 @@
     </head>
     <body>
         <form>
-            <input type="file" class="fileInput" />
-            <button actions="uploadFiles">upload</button>
+            <input type="file" />
+            <button actions="upload">upload</button>
         </form>
 
         <form>
-            <input type="file" class="fileInput" multiple />
-            <button actions="uploadFiles">upload</button>
+            <input type="file" multiple />
+            <button actions="upload">upload</button>
         </form>
         <form>
-            <input type="file" class="fileInput" directory />
-            <button actions="uploadFiles">upload</button>
+            <input type="file" directory />
+            <button actions="upload">upload</button>
         </form>
         <form>
-            <input type="file" class="fileInput" directory multiple />
-            <button actions="uploadFiles">upload</button>
+            <input type="file" directory multiple template="file-preview" />
+            <div type="file" directory multiple>
+                // adds input with display none
+            </div>
+            <button actions="upload">upload</button>
         </form>
-
+        <div template="file-preview">
+            <span>{{file.name}}</span>
+        </div>
         <script src="../dist/CoCreate-file.js"></script>
         <script src="https://cdn.cocreate.app/latest/CoCreate.min.js"></script>
     </body>

@@ -1,6 +1,41 @@
-import actions from '@cocreate/actions'
+import observer from '@cocreate/observer';
+import crud from '@cocreate/crud-client';
+import action from '@cocreate/actions';
+import render from '@cocreate/render';
+import '@cocreate/element-prototype';
 
 let inputs = new Map();
+
+function init(elements) {
+    // Returns an array of elements.
+    if (!elements)
+        elements = document.querySelectorAll('[type="file"]')
+
+    // If elements is an array of elements returns an array of elements.
+    else if (!Array.isArray(elements))
+        elements = [elements]
+    for (let i = 0; i < elements.length; i++) {
+        if (elements[i].tagName !== 'INPUT') {
+            // TODO: create input and append to div if input dos not exist
+        }
+        elements[i].getValue = async () => await getSelectedFiles([elements[i]], true)
+
+        // elements[i].setValue = (value) => pickr.setColor(value);
+        if (elements[i].hasAttribute('directory')) {
+            if (window.showDirectoryPicker)
+                elements[i].addEventListener("click", selectDirectory);
+            else if ('webkitdirectory' in elements[i]) {
+                elements[i].webkitdirectory = true
+                elements[i].addEventListener("change", handleFileInputChange)
+            } else
+                console.error("Directory selection not supported in this browser.");
+        } else if (window.showOpenFilePicker)
+            elements[i].addEventListener("click", selectFile);
+        else
+            elements[i].addEventListener("change", handleFileInputChange);
+    }
+}
+
 
 function handleFileInputChange(event) {
     const input = event.target;
@@ -9,6 +44,7 @@ function handleFileInputChange(event) {
     selected.push(...files)
     inputs.set(input, selected);
     console.log("Files selected:", files);
+    renderFiles(input)
 }
 
 async function selectFile(event) {
@@ -26,6 +62,7 @@ async function selectFile(event) {
         if (selected.length) {
             inputs.set(input, selected);
             console.log("Files selected:", selected);
+            renderFiles(input)
         }
 
     } catch (error) {
@@ -41,13 +78,13 @@ async function selectDirectory(event) {
     let selected = inputs.get(input) || []
 
     try {
-        const multiple = input.multiple
         const handle = await window.showDirectoryPicker();
         selected.push(handle)
 
         if (selected.length) {
             inputs.set(input, selected);
             console.log("Directory selected:", selected);
+            renderFiles(input)
         }
     } catch (error) {
         if (error.name !== 'AbortError') {
@@ -71,7 +108,7 @@ async function getNewFileHandle() {
     return handle;
 }
 
-async function generateFileObjects(fileInputs, isObject) {
+async function getSelectedFiles(fileInputs, isObject) {
     const files = [];
 
     if (!Array.isArray(fileInputs))
@@ -84,17 +121,18 @@ async function generateFileObjects(fileInputs, isObject) {
             let file
             if (selected[i] instanceof FileSystemDirectoryHandle) {
                 // The object is an instance of FileSystemFileHandle
-                const handles = await getFilesFromDirectory(selected[i], selected[i].name)
+                const handles = await getSelectedDirectoryFiles(selected[i], selected[i].name)
                 for (let handle of handles) {
-                    file = await handle.getFile();
-                    file.directory = handle.directory
-                    file.parentDirectory = handle.parentDirectory
-                    file.path = handle.path
+                    if (handle.kind === 'file')
+                        file = await handle.getFile();
+                    else if (handle.kind === 'directory')
+                        file = { ...handle, name: handle.name }
+                    else continue
 
                     if (isObject)
-                        files.push(await createFileObject(file))
-                    else
-                        files.push(file)
+                        file = await readFile(file)
+
+                    files.push(file)
                 }
             } else {
                 if (selected[i] instanceof FileSystemFileHandle) {
@@ -105,12 +143,11 @@ async function generateFileObjects(fileInputs, isObject) {
                     console.log("It's not a FileSystemFileHandle object");
                     file = selected[i]
                 }
-                const fileUrl = URL.createObjectURL(file);
-                console.log(fileUrl);
-                if (isObject = true)
-                    files.push(await createFileObject(file))
-                else
-                    files.push(file)
+
+                if (isObject)
+                    file = await readFile(file)
+
+                files.push(file)
             }
 
         }
@@ -119,37 +156,43 @@ async function generateFileObjects(fileInputs, isObject) {
     return files
 }
 
-async function getFilesFromDirectory(handle, name) {
+async function getSelectedDirectoryFiles(handle, name) {
     let files = [];
     for await (const entry of handle.values()) {
-        if (entry.kind === 'file') {
-            entry.directory = '/' + name
-            entry.parentDirectory = name.split("/").pop();
-            entry.path = '/' + name + '/' + entry.name
-            if (!entry.webkitRelativePath)
-                entry.webkitRelativePath = name
+        entry.directory = '/' + name
+        entry.parentDirectory = name.split("/").pop();
+        entry.path = '/' + name + '/' + entry.name
+        if (!entry.webkitRelativePath)
+            entry.webkitRelativePath = name
 
+        if (entry.kind === 'file') {
             files.push(entry);
         } else if (entry.kind === 'directory') {
-            const entries = await getFilesFromDirectory(entry, name + '/' + entry.name);
+            entry.type = 'text/directory'
+            files.push(entry);
+            const entries = await getSelectedDirectoryFiles(entry, name + '/' + entry.name);
             files = files.concat(entries);
         }
     }
     return files;
 }
 
-// This function creates a file object from the given file 
-function createFileObject(file) {
+// This function reads the file and returns its src
+function readFile(file) {
     // Return a new promise that resolves the file object
     return new Promise((resolve) => {
-        // Create a FileReader instance to read the file
-        const reader = new FileReader();
+        file["content-type"] = file.type
+
         // Split the file type into an array
         const fileType = file.type.split('/');
         let readAs;
 
-        // Check if the file type is an image
-        if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileType[1])
+        // Check if the file type is a directory
+        if (fileType[1] === 'directory') {
+            return resolve(file)
+        }
+        // Check if the file type is a image
+        else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileType[1])
             || fileType[0] === 'image') {
             readAs = 'readAsDataURL';
         }
@@ -176,56 +219,28 @@ function createFileObject(file) {
             readAs = 'readAsText';
         }
 
+        // Create a FileReader instance to read the file
+        const reader = new FileReader();
         // Read the file based on the file type
         reader[readAs](file);
         // When the file is loaded, resolve the file object
         reader.onload = () => {
-            let src = reader.result;
+            file.src = reader.result;
             // If the file type is a document, convert it to base64 encoding
             if (['doc', 'msword', 'docx', 'xlsx', 'pptx'].includes(fileType)) {
-                src = btoa(src);
+                file.src = btoa(file.src);
             }
 
             // Resolve the file object
-            resolve({
-                name: file.name,
-                path: file.path,
-                src,
-                directory: file.directory,
-                parentDirectory: file.parentDirectory,
-                size: file.size,
-                "content-type": file.type,
-                lastModified: file.lastModified,
-                lastModifiedDate: file.lastModifiedDate,
-                modified: { on: file.lastModifiedDate, by: "unknown" },
-                public: "true"
-            });
+            resolve(file);
         };
     });
-}
-
-const fileInputs = document.querySelectorAll('input[type="file"]')
-
-for (let i = 0; i < fileInputs.length; i++) {
-    if (fileInputs[i].hasAttribute('directory')) {
-        if (window.showDirectoryPicker)
-            fileInputs[i].addEventListener("click", selectDirectory);
-        else if ('webkitdirectory' in fileInputs[i]) {
-            fileInputs[i].webkitdirectory = true
-            fileInputs[i].addEventListener("change", handleFileInputChange)
-        } else
-            console.error("Directory selection not supported in this browser.");
-    } else if (window.showOpenFilePicker)
-        fileInputs[i].addEventListener("click", selectFile);
-    else
-        fileInputs[i].addEventListener("change", handleFileInputChange);
-
 }
 
 async function fileAction(btn, params, action) {
     const form = btn.closest('form')
     let inputs = form.querySelectorAll('input[type="file"]')
-    let fileObjects = await generateFileObjects(Array.from(inputs), true)
+    let fileObjects = await getSelectedFiles(Array.from(inputs), true)
 
     console.log('fileObjects', fileObjects)
     document.dispatchEvent(new CustomEvent(action, {
@@ -234,20 +249,70 @@ async function fileAction(btn, params, action) {
 
 }
 
+// may be best to use getValue() so form so inputtype files can be can be managed in forms
+async function save(inputs, collection, document_id) {
+    let files = await getSelectedFiles(inputs, true)
+
+    let response = await crud.updateDocument({
+        collection,
+        document: files,
+        upsert: true
+    });
+
+    if (response && (!document_id || document_id !== response.document_id)) {
+        crud.setDocumentId(element, collection, response.document_id);
+    }
+
+    return response
+}
+
 async function getFiles(inputs) {
-    let files = await generateFileObjects(fileInputs)
+    let files = await getSelectedFiles(inputs)
     return files
 }
+
 async function getObjects(inputs) {
-    let objects = await generateFileObjects(fileInputs, true)
+    let objects = await getSelectedFiles(inputs, true)
     return objects
 }
 
-actions.init({
-    name: "uploadFiles",
+function renderFiles(input) {
+    // TODO: support 
+    let template_id = input.getAttribute('template_id')
+    if (template_id) {
+        // if data items are handle it will not yet have all the details 
+        const data = inputs.get(input)
+        if (data.length) return
+        render.data({
+            selector: `[template='${template_id}']`,
+            data
+        });
+    }
+}
+
+observer.init({
+    name: 'CoCreateFileAddedNodes',
+    observe: ['addedNodes'],
+    target: 'input[type="file"]',
+    callback: mutation => init(mutation.target)
+
+});
+
+observer.init({
+    name: 'CoCreateFileAttributes',
+    observe: ['attributes'],
+    attributeName: ['type'],
+    target: 'input[type="file"]',
+    callback: mutation => init(mutation.target)
+});
+
+action.init({
+    name: "upload",
     callback: (btn, params) => {
-        fileAction(btn, params, "uploadFiles")
+        fileAction(btn, params, "upload")
     }
 })
+
+init()
 
 export default { getFiles, getObjects }
