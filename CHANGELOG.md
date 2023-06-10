@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.2.0...v1.2.1) (2023-06-10)
+
+
+### Bug Fixes
+
+* Refactor authentication & update config file output format ([27da6f0](https://github.com/CoCreate-app/CoCreate-file/commit/27da6f06c832bb3e153074a96a42017f0f0a3c30))
+
 # [1.2.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.1.0...v1.2.0) (2023-06-09)
 
 
