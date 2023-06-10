@@ -24,7 +24,7 @@ module.exports = async function file(CoCreateConfig) {
             key: 'host',
             prompt: 'Enter the host: '
         }, {
-            propmt: 'Choose an authentication option: \n1.key\n2.Sign In\n',
+            prompt: 'Choose an authentication option: \n1.key\n2.Sign In\n',
             choices: {
                 '1': {
                     key: 'key',
@@ -336,9 +336,9 @@ module.exports = async function file(CoCreateConfig) {
 
             newConfig.sources = sources
 
-            delete newConfig.config.url
-            delete newConfig.config.broadcast
-            const write_str = `module.exports = ${JSON.stringify(globalConfig, null, 4)};`;
+            delete newConfig.url
+            delete newConfig.broadcast
+            const write_str = `module.exports = ${JSON.stringify(newConfig, null, 4)};`;
 
             fs.writeFileSync(configFile, write_str);
         }
