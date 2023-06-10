@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.2.2...v1.2.3) (2023-06-10)
+
+
+### Bug Fixes
+
+* Update dependencies versions for [@cocreate](https://github.com/cocreate) libraries ([b7c568f](https://github.com/CoCreate-app/CoCreate-file/commit/b7c568fb0de2f61007516df45c1052706eba52b9))
+
 ## [1.2.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.2.1...v1.2.2) (2023-06-10)
 
 
