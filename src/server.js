@@ -1,6 +1,5 @@
 const crud = require('@cocreate/crud-client')
 const cli = require('@cocreate/cli')
-const mime = require('mime-types')
 const fs = require('fs');
 const path = require('path');
 const mimeTypes = {
