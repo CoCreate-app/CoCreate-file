@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.2.13...v1.3.0) (2023-06-11)
+
+
+### Features
+
+* mimeTypes ([739bacd](https://github.com/CoCreate-app/CoCreate-file/commit/739bacdc524646f0ec8a5065f6e84d87872b2a64))
+
 ## [1.2.13](https://github.com/CoCreate-app/CoCreate-file/compare/v1.2.12...v1.2.13) (2023-06-11)
 
 
