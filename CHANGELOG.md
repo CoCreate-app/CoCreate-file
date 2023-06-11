@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.1...v1.3.2) (2023-06-11)
+
+
+### Bug Fixes
+
+* removed mime-types dependency ([ad199e8](https://github.com/CoCreate-app/CoCreate-file/commit/ad199e85900e46d5e1ccea96bfa2746be255c289))
+
 ## [1.3.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.0...v1.3.1) (2023-06-11)
 
 
