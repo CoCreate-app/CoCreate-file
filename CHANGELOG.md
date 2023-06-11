@@ -1,3 +1,10 @@
+## [1.2.7](https://github.com/CoCreate-app/CoCreate-file/compare/v1.2.6...v1.2.7) (2023-06-11)
+
+
+### Bug Fixes
+
+* @cocreate/cli moved to dependencies ([0ff1ff6](https://github.com/CoCreate-app/CoCreate-file/commit/0ff1ff65fc53bef839866211093db386d84f7097))
+
 ## [1.2.6](https://github.com/CoCreate-app/CoCreate-file/compare/v1.2.5...v1.2.6) (2023-06-11)
 
 
