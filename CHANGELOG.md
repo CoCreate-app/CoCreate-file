@@ -1,3 +1,10 @@
+## [1.3.6](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.5...v1.3.6) (2023-06-14)
+
+
+### Bug Fixes
+
+* choices data structure ([e07322c](https://github.com/CoCreate-app/CoCreate-file/commit/e07322c74a0dd528226b349ad97d09f93c5893f0))
+
 ## [1.3.5](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.4...v1.3.5) (2023-06-14)
 
 
