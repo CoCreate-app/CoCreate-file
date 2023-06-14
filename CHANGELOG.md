@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.3...v1.3.4) (2023-06-14)
+
+
+### Bug Fixes
+
+* add @cocreate/config package ([6ae4a9f](https://github.com/CoCreate-app/CoCreate-file/commit/6ae4a9f870f36d293a1c2bcb2ea4f188cf3b136f))
+
 ## [1.3.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.2...v1.3.3) (2023-06-11)
 
 
