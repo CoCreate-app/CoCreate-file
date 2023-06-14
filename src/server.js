@@ -1,5 +1,5 @@
 const crud = require('@cocreate/crud-client')
-const cli = require('@cocreate/cli')
+const Config = require('@cocreate/config')
 const fs = require('fs');
 const path = require('path');
 const mimeTypes = {
@@ -88,7 +88,7 @@ module.exports = async function file(CoCreateConfig) {
     }
 
     let { directories, sources } = CoCreateConfig;
-    let config = await cli.config([
+    let config = await Config([
         {
             key: 'organization_id',
             prompt: 'Enter your organization_id: '
