@@ -88,33 +88,32 @@ module.exports = async function file(CoCreateConfig) {
     }
 
     let { directories, sources } = CoCreateConfig;
-    let config = await Config([
-        {
-            key: 'organization_id',
+    let config = await Config({
+        organization_id: {
             prompt: 'Enter your organization_id: '
-        }, {
-            key: 'host',
+        },
+        host: {
             prompt: 'Enter the host: '
-        }, {
+        },
+        prompt: {
             prompt: 'Choose an authentication option: \n1.key\n2.Sign In\n',
             choices: {
                 '1': {
-                    key: 'key',
-                    prompt: 'Enter your key: '
+                    key: {
+                        prompt: 'Enter your key: '
+                    }
                 },
-                '2': [
-                    {
-                        key: 'email',
+                '2': {
+                    email: {
                         prompt: 'Enter your email: '
                     },
-                    {
-                        key: 'password',
+                    password: {
                         prompt: 'Enter your password: '
                     }
-                ]
+                }
             }
         }
-    ])
+    })
 
     if (!config.organization_id || !config.host || !config.key && (!config.password || config.email)) {
         console.log('One or more required config params could not be found')
