@@ -1,3 +1,10 @@
+## [1.3.9](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.8...v1.3.9) (2023-06-15)
+
+
+### Bug Fixes
+
+* Updatae [@cocreate](https://github.com/cocreate) dependnenies to the latest versions ([294fa6f](https://github.com/CoCreate-app/CoCreate-file/commit/294fa6f30b12096ce52e2ac66ecd85b59a440c20))
+
 ## [1.3.8](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.7...v1.3.8) (2023-06-15)
 
 
