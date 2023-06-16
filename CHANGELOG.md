@@ -1,3 +1,10 @@
+## [1.3.10](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.9...v1.3.10) (2023-06-16)
+
+
+### Bug Fixes
+
+* Refactor repositories object in newConfig to only include necessary keys ([9cc2559](https://github.com/CoCreate-app/CoCreate-file/commit/9cc2559f0dadec0bf1f6b9f45599435644631ca9))
+
 ## [1.3.9](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.8...v1.3.9) (2023-06-15)
 
 
