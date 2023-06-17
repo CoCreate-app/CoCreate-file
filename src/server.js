@@ -410,13 +410,14 @@ module.exports = async function file(CoCreateConfig) {
 
             newConfig.sources = sources
 
-            newConfig.repositories.forEach(obj => {
-                for (const key in obj) {
-                    if (!["path", "repo", "exclude"].includes(key)) {
-                        delete obj[key];
+            if (newConfig.repositories)
+                newConfig.repositories.forEach(obj => {
+                    for (const key in obj) {
+                        if (!["path", "repo", "exclude"].includes(key)) {
+                            delete obj[key];
+                        }
                     }
-                }
-            });
+                });
 
             delete newConfig.url
             delete newConfig.broadcast
