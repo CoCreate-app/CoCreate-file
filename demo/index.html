@@ -13,12 +13,12 @@
     </head>
     <body>
         <form>
-            <input type="file" />
+            <input type="file" file-api />
             <button actions="upload">upload</button>
         </form>
 
         <form>
-            <input type="file" multiple />
+            <input type="file" multiple file-api />
             <button actions="upload">upload</button>
         </form>
 
@@ -28,15 +28,20 @@
         </form>
 
         <form>
-            <input type="file" directory multiple template="file-preview" />
-            <div type="file" directory multiple>
-                // adds input with display none
-            </div>
+            <div type="file" directory multiple></div>
+            <button actions="upload">upload</button>
+        </form>
+        <form>
+            <input type="file" directory multiple template_id="file-preview" />
+            <input type="file" directory multiple />
             <button actions="upload">upload</button>
         </form>
 
         <div template="file-preview">
-            <span>{{file.name}}</span>
+            <input file="name" value="{{name}}" />
+            <input file="directory" value="{{directory}}" />
+            <input file="content-type" value="{{content-type}}" />
+            <div>id: {{id}}</div>
         </div>
 
         <!-- <script src="../dist/CoCreate-file.js"></script> -->

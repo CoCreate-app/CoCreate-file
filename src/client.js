@@ -11,55 +11,67 @@ function init(elements) {
     if (!elements)
         elements = document.querySelectorAll('[type="file"]')
 
-    // If elements is an array of elements returns an array of elements.
+    // If elements is an not array of elements returns an array of elements.
     else if (!Array.isArray(elements))
         elements = [elements]
     for (let i = 0; i < elements.length; i++) {
         if (elements[i].tagName !== 'INPUT') {
             // TODO: create input and append to div if input dos not exist
+            // check if input exist
+            let input = document.createElement("input");
+            input.type = "file";
+            input.setAttribute('hidden', '')
+            elements[i].appendChild(input);
         }
-        elements[i].getValue = async () => await getSelectedFiles([elements[i]], true)
+
+        elements[i].getValue = async () => await getFiles([elements[i]])
+        elements[i].getFiles = async () => await getFiles([elements[i]])
 
         // elements[i].setValue = (value) => pickr.setColor(value);
+
         if (elements[i].hasAttribute('directory')) {
             if (window.showDirectoryPicker)
                 elements[i].addEventListener("click", selectDirectory);
             else if ('webkitdirectory' in elements[i]) {
                 elements[i].webkitdirectory = true
-                elements[i].addEventListener("change", handleFileInputChange)
+                elements[i].addEventListener("change", fileInputChange)
             } else
                 console.error("Directory selection not supported in this browser.");
         } else if (window.showOpenFilePicker)
             elements[i].addEventListener("click", selectFile);
         else
-            elements[i].addEventListener("change", handleFileInputChange);
+            elements[i].addEventListener("change", fileInputChange);
     }
 }
 
-
-function handleFileInputChange(event) {
+async function fileInputChange(event) {
     const input = event.target;
     const files = input.files;
-    let selected = inputs.get(input) || []
-    selected.push(...files)
+    let selected = inputs.get(input) || new Map()
+    for (let i = 0; i < files.length; i++) {
+        let fileId = await getFileId(files[i], selected)
+        selected.set(fileId, { handle, file: files[i] })
+    }
     inputs.set(input, selected);
-    console.log("Files selected:", files);
+    console.log("FileList:", Array.from(selected.values()));
     renderFiles(input)
 }
 
 async function selectFile(event) {
     event.preventDefault()
     const input = event.target;
-    let selected = inputs.get(input) || []
+    let selected = inputs.get(input) || new Map()
     try {
         const multiple = input.multiple
         const selectedFiles = await window.showOpenFilePicker({ multiple });
 
         for (const handle of selectedFiles) {
-            selected.push(handle)
+            let file = handle.getFile()
+            let fileId = await getFileId(file, selected)
+            selected.set(fileId, { handle, file })
         }
 
-        if (selected.length) {
+        if (selected.size) {
             inputs.set(input, selected);
             console.log("Files selected:", selected);
             renderFiles(input)
@@ -75,13 +87,35 @@ async function selectFile(event) {
 async function selectDirectory(event) {
     event.preventDefault()
     const input = event.target;
-    let selected = inputs.get(input) || []
+    let selected = inputs.get(input) || new Map()
 
     try {
         const handle = await window.showDirectoryPicker();
-        selected.push(handle)
+        let file = {
+            name: handle.name,
+            directory: '/',
+            path: '/' + handle.name,
+            type: 'text/directory',
+            'content-type': 'text/directory'
+        }
 
-        if (selected.length) {
+        file.id = await getFileId(file, selected)
+        selected.set(file.id, { handle, file })
+
+        const handles = await getSelectedDirectoryHandles(handle, handle.name)
+        for (let i = 0; i < handles.length; i++) {
+            let file = handles[i]
+            if (handles[i].kind === 'file') {
+                file = await handles[i].getFile();
+                file = { ...file, ...handles[i] }
+            }
+
+            file['content-type'] = file.type
+            file.id = await getFileId(file, selected)
+            selected.set(file.id, { handle: handles[i], file })
+        }
+
+        if (selected.size) {
             inputs.set(input, selected);
             console.log("Directory selected:", selected);
             renderFiles(input)
@@ -93,71 +127,8 @@ async function selectDirectory(event) {
     }
 }
 
-async function getNewFileHandle() {
-    // const options = {
-    //     types: [
-    //         {
-    //             description: 'Text Files',
-    //             accept: {
-    //                 'text/plain': ['.txt'],
-    //             },
-    //         },
-    //     ],
-    // };
-    const handle = await window.showSaveFilePicker(options);
-    return handle;
-}
-
-async function getSelectedFiles(fileInputs, isObject) {
-    const files = [];
-
-    if (!Array.isArray(fileInputs))
-        fileInputs = [fileInputs]
-
-    for (let input of fileInputs) {
-        const selected = inputs.get(input) || []
-
-        for (let i = 0; i < selected.length; i++) {
-            let file
-            if (selected[i] instanceof FileSystemDirectoryHandle) {
-                // The object is an instance of FileSystemFileHandle
-                const handles = await getSelectedDirectoryFiles(selected[i], selected[i].name)
-                for (let handle of handles) {
-                    if (handle.kind === 'file')
-                        file = await handle.getFile();
-                    else if (handle.kind === 'directory')
-                        file = { ...handle, name: handle.name }
-                    else continue
-
-                    if (isObject)
-                        file = await readFile(file)
-
-                    files.push(file)
-                }
-            } else {
-                if (selected[i] instanceof FileSystemFileHandle) {
-                    // The object is an instance of FileSystemFileHandle
-                    file = await selected[i].getFile();
-                } else {
-                    // The object is not an instance of FileSystemFileHandle
-                    console.log("It's not a FileSystemFileHandle object");
-                    file = selected[i]
-                }
-
-                if (isObject)
-                    file = await readFile(file)
-
-                files.push(file)
-            }
-
-        }
-    }
-
-    return files
-}
-
-async function getSelectedDirectoryFiles(handle, name) {
-    let files = [];
+async function getSelectedDirectoryHandles(handle, name) {
+    let handles = [];
     for await (const entry of handle.values()) {
         entry.directory = '/' + name
         entry.parentDirectory = name.split("/").pop();
@@ -166,23 +137,71 @@ async function getSelectedDirectoryFiles(handle, name) {
             entry.webkitRelativePath = name
 
         if (entry.kind === 'file') {
-            files.push(entry);
+            handles.push(entry);
         } else if (entry.kind === 'directory') {
             entry.type = 'text/directory'
-            files.push(entry);
-            const entries = await getSelectedDirectoryFiles(entry, name + '/' + entry.name);
-            files = files.concat(entries);
+            handles.push(entry);
+            const entries = await getSelectedDirectoryHandles(entry, name + '/' + entry.name);
+            handles = handles.concat(entries);
         }
     }
-    return files;
+    return handles;
 }
+
+async function getFileId(file, selected) {
+
+    if (file.id = file.path || file.webkitRelativePath) {
+        return file.id;
+    } else {
+        const { name, size, type, lastModified } = file;
+        const key = `${name}${size}${type}${lastModified}`;
+
+        if (selected.has(key)) {
+            console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+        }
+
+        file.id = key
+        return key;
+    }
+}
+
+async function getFiles(fileInputs) {
+    const files = [];
+
+    if (!Array.isArray(fileInputs))
+        fileInputs = [fileInputs]
+
+    for (let input of fileInputs) {
+        const selected = inputs.get(input)
+        for (const value of selected.values()) {
+            let file = await readFile(value.file)
+            file = getData({ ...file })
+            files.push(file)
+        }
+    }
+
+    return files
+}
+
+function getData(file) {
+    let form = document.querySelector(`[file_id="${file.id}"]`);
+    if (form) {
+        let elements = form.querySelectorAll('[file]');
+        for (let i = 0; i < elements.length; i++) {
+            let name = elements[i].getAttribute('file')
+            if (name) {
+                file[name] = elements[i].getValue()
+            }
+        }
+    }
+    return file;
+}
+
 
 // This function reads the file and returns its src
 function readFile(file) {
     // Return a new promise that resolves the file object
     return new Promise((resolve) => {
-        file["content-type"] = file.type
-
         // Split the file type into an array
         const fileType = file.type.split('/');
         let readAs;
@@ -237,25 +256,49 @@ function readFile(file) {
     });
 }
 
+async function getNewFileHandle() {
+    // const options = {
+    //     types: [
+    //         {
+    //             description: 'Text Files',
+    //             accept: {
+    //                 'text/plain': ['.txt'],
+    //             },
+    //         },
+    //     ],
+    // };
+    const handle = await window.showSaveFilePicker(options);
+    return handle;
+}
+
 async function fileAction(btn, params, action) {
     const form = btn.closest('form')
     let inputs = form.querySelectorAll('input[type="file"]')
-    let fileObjects = await getSelectedFiles(Array.from(inputs), true)
+    for (let i = 0; i < inputs.length; i++) {
+        await save(inputs[i])
+    }
 
-    console.log('fileObjects', fileObjects)
     document.dispatchEvent(new CustomEvent(action, {
         detail: {}
     }));
 
 }
 
-// may be best to use getValue() so form so inputtype files can be can be managed in forms
-async function save(inputs, collection, document_id) {
-    let files = await getSelectedFiles(inputs, true)
+async function save(input) {
+    let collection = input.getAttribute('collection')
+    let document_id = input.getAttribute('document_id')
+    let files = await getFiles(input)
+
+    let document
+    if (input.name) {
+        document = { _id: document_id, [input.name]: files }
+    } else {
+        document = files
+    }
 
     let response = await crud.updateDocument({
         collection,
-        document: files,
+        document,
         upsert: true
     });
 
@@ -266,23 +309,13 @@ async function save(inputs, collection, document_id) {
     return response
 }
 
-async function getFiles(inputs) {
-    let files = await getSelectedFiles(inputs)
-    return files
-}
-
-async function getObjects(inputs) {
-    let objects = await getSelectedFiles(inputs, true)
-    return objects
-}
-
-function renderFiles(input) {
-    // TODO: support 
+async function renderFiles(input) {
     let template_id = input.getAttribute('template_id')
     if (template_id) {
-        // if data items are handle it will not yet have all the details 
-        const data = inputs.get(input)
-        if (data.length) return
+        let template = document.querySelector(`[template="${template_id}"]`)
+        template.setAttribute('file_id', '{{id}}')
+        const data = await getFiles(input)
+        if (!data.length) return
         render.data({
             selector: `[template='${template_id}']`,
             data
@@ -306,6 +339,14 @@ observer.init({
     callback: mutation => init(mutation.target)
 });
 
+observer.init({
+    name: 'fileRender',
+    observe: ['attributes'],
+    attributeName: ['template_id'],
+    target: 'input[type="file"]',
+    callback: mutation => renderFiles(mutation.target)
+});
+
 action.init({
     name: "upload",
     callback: (btn, params) => {
@@ -315,4 +356,4 @@ action.init({
 
 init()
 
-export default { getFiles, getObjects }
+export default { getFiles }
