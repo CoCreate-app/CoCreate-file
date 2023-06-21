@@ -307,7 +307,7 @@ async function fileFormAction(btn, params, action) {
             // Export(inputs[i])
         }
         else if (action === 'import') {
-            // Import(inputs[i])
+            Import(inputs[i])
         } else {
         }
     }
@@ -432,6 +432,23 @@ async function upload(input) {
     return response
 }
 
+async function Import(input) {
+    let files = await getFiles(input)
+    const data = files.reduce((result, { src }) => {
+        try {
+            const parsedSrc = JSON.parse(src);
+            result.push(parsedSrc);
+        } catch (error) {
+            console.error(`Error parsing JSON: ${error}`);
+        }
+        return result;
+    }, []);
+
+    let response = await crud.createDocument(data);
+
+    return response
+}
+
 async function create(directory, type, name, src = "") {
     try {
         if (directory.handle && directory.input) {
@@ -525,6 +542,14 @@ action.init({
 
 action.init({
     name: "saveLocally",
+    callback: (btn, params) => {
+        fileFormAction(btn, params, "saveLocally")
+    }
+})
+
+action.init({
+    name: "import",
+    endEvent: "imported",
     callback: (btn, params) => {
         fileFormAction(btn, params, "saveLocally")
     }
