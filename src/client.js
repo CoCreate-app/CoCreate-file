@@ -49,8 +49,13 @@ async function fileInputChange(event) {
     const files = input.files;
     let selected = inputs.get(input) || new Map()
     for (let i = 0; i < files.length; i++) {
-        let fileId = await getFileId(files[i], selected)
-        selected.set(fileId, { handle, file: files[i] })
+        files[i].input = input
+        files[i].id = await getFileId(files[i])
+        if (selected.has(files[i].id)) {
+            console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+        }
+
+        selected.set(files[i].id, files[i])
     }
     inputs.set(input, selected);
     console.log("FileList:", Array.from(selected.values()));
@@ -66,9 +71,15 @@ async function selectFile(event) {
         const selectedFiles = await window.showOpenFilePicker({ multiple });
 
         for (const handle of selectedFiles) {
-            let file = handle.getFile()
-            let fileId = await getFileId(file, selected)
-            selected.set(fileId, { handle, file })
+            let file = await handle.getFile()
+            file.input = input
+            file.id = await getFileId(file)
+            if (selected.has(file.id)) {
+                console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+            }
+
+            file.handle = handle
+            selected.set(file.id, file)
         }
 
         if (selected.size) {
@@ -98,21 +109,35 @@ async function selectDirectory(event) {
             type: 'text/directory',
             'content-type': 'text/directory'
         }
+        file.input = input
+        file.id = await getFileId(file)
+        if (selected.has(file.id)) {
+            console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+        }
 
-        file.id = await getFileId(file, selected)
-        selected.set(file.id, { handle, file })
+        file.handle = handle
+        selected.set(file.id, file)
 
         const handles = await getSelectedDirectoryHandles(handle, handle.name)
         for (let i = 0; i < handles.length; i++) {
             let file = handles[i]
             if (handles[i].kind === 'file') {
                 file = await handles[i].getFile();
-                file = { ...file, ...handles[i] }
+                file.directory = handles[i].directory
+                file.parentDirectory = handles[i].parentDirectory
+                file.path = handles[i].path
             }
 
+            file.input = input
+            file.id = await getFileId(file)
+            if (selected.has(file.id)) {
+                console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+            }
+
+            file.handle = handles[i]
             file['content-type'] = file.type
-            file.id = await getFileId(file, selected)
-            selected.set(file.id, { handle: handles[i], file })
+
+            selected.set(file.id, file)
         }
 
         if (selected.size) {
@@ -156,16 +181,12 @@ async function getFileId(file, selected) {
         const { name, size, type, lastModified } = file;
         const key = `${name}${size}${type}${lastModified}`;
 
-        if (selected.has(key)) {
-            console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
-        }
-
         file.id = key
         return key;
     }
 }
 
-async function getFiles(fileInputs) {
+async function getFiles(fileInputs, isGetData) {
     const files = [];
 
     if (!Array.isArray(fileInputs))
@@ -173,11 +194,14 @@ async function getFiles(fileInputs) {
 
     for (let input of fileInputs) {
         const selected = inputs.get(input)
-        for (const value of selected.values()) {
-            let file = await readFile(value.file)
-            file = getData({ ...file })
-            files.push(file)
-        }
+        if (selected)
+            for (let file of selected.values()) {
+                if (!file.src)
+                    file = await readFile(file)
+                if (isGetData !== false)
+                    file = getData({ ...file })
+                files.push(file)
+            }
     }
 
     return files
@@ -256,26 +280,36 @@ function readFile(file) {
     });
 }
 
-async function getNewFileHandle() {
-    // const options = {
-    //     types: [
-    //         {
-    //             description: 'Text Files',
-    //             accept: {
-    //                 'text/plain': ['.txt'],
-    //             },
-    //         },
-    //     ],
-    // };
-    const handle = await window.showSaveFilePicker(options);
-    return handle;
+async function renderFiles(input) {
+    let template_id = input.getAttribute('template_id')
+    if (template_id) {
+        let template = document.querySelector(`[template="${template_id}"]`)
+        template.setAttribute('file_id', '{{id}}')
+        const data = await getFiles(input, false)
+        if (!data.length) return
+        render.data({
+            selector: `[template='${template_id}']`,
+            data
+        });
+    }
 }
 
-async function fileAction(btn, params, action) {
+async function fileFormAction(btn, params, action) {
     const form = btn.closest('form')
     let inputs = form.querySelectorAll('input[type="file"]')
     for (let i = 0; i < inputs.length; i++) {
-        await save(inputs[i])
+        if (action === 'upload')
+            upload(inputs[i])
+        else if (action === 'saveLocally' || action === 'saveAs') {
+            save(inputs[i])
+        }
+        else if (action === 'export') {
+            // Export(inputs[i])
+        }
+        else if (action === 'import') {
+            // Import(inputs[i])
+        } else {
+        }
     }
 
     document.dispatchEvent(new CustomEvent(action, {
@@ -284,7 +318,96 @@ async function fileAction(btn, params, action) {
 
 }
 
+async function fileRenderAction(btn, params, action) {
+    let file_id = btn.getAttribute('file_id');
+    if (!file_id) {
+        const closestElement = btn.closest('[file_id]');
+        if (closestElement) {
+            file_id = closestElement.getAttribute('file_id');
+        }
+    }
+    if (!file_id) return
+
+    let templateid = btn.closest('[templateid]')
+    if (templateid)
+        templateid = templateid.getAttribute('templateid')
+
+    const input = document.querySelector(`[type="file"][template_id="${templateid}"]`)
+    if (!input) return
+
+    let file = inputs.get(input).get(file_id)
+    if (!file) return
+
+    if (action === 'createFile') {
+        let name = btn.getAttribute('value')
+        create(file, 'file', name)
+    }
+    else if (action === 'deleteFile')
+        Delete(file)
+    else if (action === 'createDirectory') {
+        let name = btn.getAttribute('value')
+        create(file, 'directory', name)
+    }
+    else if (action === 'deleteDirectory')
+        Delete(file)
+
+    document.dispatchEvent(new CustomEvent(action, {
+        detail: {}
+    }));
+
+}
+
 async function save(input) {
+    try {
+        let files = await getFiles(input)
+
+        for (let i = 0; i < files.length; i++) {
+            if (!files[i].src) continue
+
+            if (files[i].handle) {
+                if ('saveAs' == 'true') {
+                    if (files[i].kind === 'file') {
+                        const options = {
+                            suggestedName: files[i].name,
+                            types: [
+                                {
+                                    description: 'Text Files',
+                                }
+                            ],
+                        };
+                        files[i].handle = await window.showSaveFilePicker(options);
+                    } else if (files[i].kind === 'directory') {
+                        // Create a new subdirectory
+                        files[i].handle = await files[i].handle.getDirectoryHandle('new_directory', { create: true });
+                        return
+                    }
+                }
+
+                const writable = await files[i].handle.createWritable();
+                await writable.write(files[i].src);
+                await writable.close();
+
+            } else {
+                const blob = new Blob([files[i].src], { type: files[i].type });
+
+                // Create a temporary <a> element to trigger the file download
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(blob);
+                downloadLink.download = files[i].name;
+
+                // Trigger the download
+                downloadLink.click();
+            }
+
+        }
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            console.error("Error selecting files:", error);
+        }
+    }
+}
+
+async function upload(input) {
     let collection = input.getAttribute('collection')
     let document_id = input.getAttribute('document_id')
     let files = await getFiles(input)
@@ -309,17 +432,63 @@ async function save(input) {
     return response
 }
 
-async function renderFiles(input) {
-    let template_id = input.getAttribute('template_id')
-    if (template_id) {
-        let template = document.querySelector(`[template="${template_id}"]`)
-        template.setAttribute('file_id', '{{id}}')
-        const data = await getFiles(input)
-        if (!data.length) return
-        render.data({
-            selector: `[template='${template_id}']`,
-            data
-        });
+async function create(directory, type, name, src = "") {
+    try {
+        if (directory.handle && directory.input) {
+            if (!name) {
+                const name = prompt('Enter the file name:');
+                if (!name) {
+                    console.log('Invalid file name.');
+                    return;
+                }
+
+            }
+
+            let handle, file
+            if (type === 'directory') {
+                handle = await directory.handle.getDirectoryHandle(name, { create: true });
+                file = { name: handle.name, type: 'text/directory' }
+            } else if (type === 'file') {
+                handle = await directory.handle.getFileHandle(name, { create: true });
+                const writable = await handle.createWritable();
+
+                // Write data to the new file...
+                await writable.write(src);
+                await writable.close();
+
+                file = handle.getFile()
+            }
+
+            if (directory.input) {
+                file.directory = directory.path
+                file.parentDirectory = directory.name
+                file.path = directory.path + '/' + file.name
+                file.input = directory.input
+                file.handle = handle
+                file['content-type'] = file.type
+
+                file.id = await getFileId(file)
+                if (inputs.get(directory.input).has(file.id)) {
+                    console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+                }
+
+                inputs.get(directory.input).set(file.id, file)
+            }
+        }
+    } catch (error) {
+        console.log('Error adding file:', error);
+    }
+}
+
+async function Delete(file) {
+    try {
+        if (file.handle) {
+            await file.handle.remove();
+            if (file.input && file.id)
+                inputs.get(file.input).delete(file.id)
+        }
+    } catch (error) {
+        console.log('Error deleting file:', error);
     }
 }
 
@@ -350,10 +519,44 @@ observer.init({
 action.init({
     name: "upload",
     callback: (btn, params) => {
-        fileAction(btn, params, "upload")
+        fileFormAction(btn, params, "upload")
+    }
+})
+
+action.init({
+    name: "saveLocally",
+    callback: (btn, params) => {
+        fileFormAction(btn, params, "saveLocally")
+    }
+})
+
+action.init({
+    name: "createFile",
+    callback: (btn, params) => {
+        fileRenderAction(btn, params, "createFile")
+    }
+})
+
+action.init({
+    name: "deleteFile",
+    callback: (btn, params) => {
+        fileRenderAction(btn, params, "deleteFile")
+    }
+})
+action.init({
+    name: "createDirectory",
+    callback: (btn, params) => {
+        fileRenderAction(btn, params, "createDirectory")
+    }
+})
+
+action.init({
+    name: "deleteDirectory",
+    callback: (btn, params) => {
+        fileRenderAction(btn, params, "deleteDirectory")
     }
 })
 
 init()
 
-export default { getFiles }
+export default { getFiles, create, Delete }
