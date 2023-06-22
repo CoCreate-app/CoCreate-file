@@ -1,6 +1,6 @@
 import observer from '@cocreate/observer';
 import crud from '@cocreate/crud-client';
-import action from '@cocreate/actions';
+import actions from '@cocreate/actions';
 import render from '@cocreate/render';
 import '@cocreate/element-prototype';
 
@@ -263,14 +263,19 @@ async function fileFormAction(data) {
     const action = data.name
     const form = data.element.closest('form')
     let inputs = form.querySelectorAll('input[type="file"]')
+    // if (action === 'export') {
+    //     Export(inputs)
+    // } else if (action === 'download') {
+    //     save(inputs[i])
+    // }
     for (let i = 0; i < inputs.length; i++) {
         if (action === 'upload')
             upload(inputs[i])
-        else if (action === 'download' || action === 'saveLocally' || action === 'saveAs') {
+        else if (action === 'saveLocally' || action === 'saveAs') {
             save(inputs[i])
         }
         else if (action === 'export') {
-            // Export(inputs[i])
+            Export(inputs[i])
         }
         else if (action === 'import') {
             Import(inputs[i])
@@ -405,7 +410,10 @@ async function Import(input) {
     const data = files.reduce((result, { src }) => {
         try {
             const parsedSrc = JSON.parse(src);
-            result.push(parsedSrc);
+            if (Array.isArray(parsedSrc))
+                result.push(...parsedSrc);
+            else
+                result.push(parsedSrc);
         } catch (error) {
             console.error(`Error parsing JSON: ${error}`);
         }
@@ -417,21 +425,41 @@ async function Import(input) {
     return response
 }
 
-async function Export(btn) {
-    const item_id = btn.getAttribute('template_id');
-    let item = this.items.get(item_id)
-    if (!item) return;
+async function Export(btn, inputs) {
+    let data = crud.getAttributes(btn);
+    const template_id = btn.getAttribute('template_id');
 
+    if (data.storage || data.database || data.collection) {
+        let name = data.name
+        if (data.document_id) {
+            data.document = { _id: data.document_id }
+            delete data.document_id
+            delete data.name
+        }
+        data = await crud.readDocument(data);
 
-    let Item = new Object(item)
-    Item.filter.startIndex = 0;
-    delete Item.el
-    delete Item.count
+        if (name) {
+            data = data.document[0][name]
+        }
 
-    let data;
-    if (crud) {
-        data = await crud.readDocument(Item);
+    } else if (template_id) {
+        console.log('export json data used to render templates')
+    } else {
+        data = getFiles(inputs)
     }
+    // let item = this.items.get(item_id)
+    // if (!item) return;
+
+
+    // let Item = new Object(item)
+    // Item.filter.startIndex = 0;
+    // delete Item.el
+    // delete Item.count
+
+    // let data;
+    // if (crud) {
+    //     data = await crud.readDocument(Item);
+    // }
     // TODO: get from local data source
     exportFile(data);
 }
@@ -549,19 +577,20 @@ observer.init({
     callback: mutation => renderFiles(mutation.target)
 });
 
-action.init({
-    name: ["upload", "download", "saveLocally", "import", "export"],
-    callback: (data) => {
-        fileFormAction(data)
+actions.init(
+    {
+        name: ["upload", "download", "saveLocally", "import", "export"],
+        callback: (action) => {
+            fileFormAction(action)
+        }
+    },
+    {
+        name: ["createFile", "deleteFile", "createDirectory", "deleteDirectory"],
+        callback: (action) => {
+            fileRenderAction(action)
+        }
     }
-})
-
-action.init({
-    name: ["createFile", "deleteFile", "createDirectory", "deleteDirectory"],
-    callback: (data) => {
-        fileRenderAction(data)
-    }
-})
+)
 
 init()
 
