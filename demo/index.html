@@ -13,12 +13,17 @@
     </head>
     <body>
         <form>
-            <input type="file" file-api />
+            <input type="file" import />
+            <button actions="import">upload</button>
+        </form>
+
+        <form>
+            <input type="file" />
             <button actions="upload">upload</button>
         </form>
 
         <form>
-            <input type="file" multiple file-api />
+            <input type="file" multiple />
             <button actions="upload">upload</button>
         </form>
 
@@ -27,20 +32,26 @@
             <button actions="upload">upload</button>
         </form>
 
-        <form>
+        <!-- <form>
             <div type="file" directory multiple></div>
             <button actions="upload">upload</button>
-        </form>
+        </form> -->
         <form>
-            <input type="file" directory multiple template_id="file-preview" />
-            <input type="file" directory multiple />
-            <button actions="upload">upload</button>
+            <input type="file" directory template_id="file-preview" />
+
+            <button actions="saveLocally">saveLocally</button>
         </form>
 
         <div template="file-preview">
+            <button actions="createFile" value="tesing.js">createFile</button>
+            <button actions="deleteFile">deleteFile</button>
+            <button actions="createDirectory">createDirectory</button>
+            <button actions="deleteDirectory">deleteDirectory</button>
+
             <input file="name" value="{{name}}" />
             <input file="directory" value="{{directory}}" />
             <input file="content-type" value="{{content-type}}" />
+            <textarea file="src" value-type="string">{{src}}</textarea>
             <div>id: {{id}}</div>
         </div>
 
