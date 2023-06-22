@@ -266,7 +266,7 @@ async function fileFormAction(data) {
     for (let i = 0; i < inputs.length; i++) {
         if (action === 'upload')
             upload(inputs[i])
-        else if (action === 'saveLocally' || action === 'saveAs') {
+        else if (action === 'download' || action === 'saveLocally' || action === 'saveAs') {
             save(inputs[i])
         }
         else if (action === 'export') {
@@ -325,15 +325,15 @@ async function fileRenderAction(data) {
 
 }
 
-async function save(input) {
+async function save(input, action) {
     try {
         let files = await getFiles(input)
 
         for (let i = 0; i < files.length; i++) {
             if (!files[i].src) continue
 
-            if (files[i].handle) {
-                if ('saveAs' == 'true') {
+            if (files[i].handle && action !== 'download') {
+                if (action === 'saveAs') {
                     if (files[i].kind === 'file') {
                         const options = {
                             suggestedName: files[i].name,
@@ -550,55 +550,14 @@ observer.init({
 });
 
 action.init({
-    name: "upload",
+    name: ["upload", "download", "saveLocally", "import", "export"],
     callback: (data) => {
         fileFormAction(data)
     }
 })
 
 action.init({
-    name: "saveLocally",
-    callback: (data) => {
-        fileFormAction(data)
-    }
-})
-
-action.init({
-    name: "import",
-    callback: (data) => {
-        fileFormAction(data)
-    }
-})
-
-action.init({
-    name: "export",
-    callback: (data) => {
-        fileFormAction(data)
-    }
-})
-
-action.init({
-    name: "createFile",
-    callback: (data) => {
-        fileRenderAction(data)
-    }
-})
-
-action.init({
-    name: "deleteFile",
-    callback: (data) => {
-        fileRenderAction(data)
-    }
-})
-action.init({
-    name: "createDirectory",
-    callback: (data) => {
-        fileRenderAction(data)
-    }
-})
-
-action.init({
-    name: "deleteDirectory",
+    name: ["createFile", "deleteFile", "createDirectory", "deleteDirectory"],
     callback: (data) => {
         fileRenderAction(data)
     }
