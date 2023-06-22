@@ -31,128 +31,93 @@ function init(elements) {
 
         if (elements[i].hasAttribute('directory')) {
             if (window.showDirectoryPicker)
-                elements[i].addEventListener("click", selectDirectory);
+                elements[i].addEventListener("click", fileEvent);
             else if ('webkitdirectory' in elements[i]) {
                 elements[i].webkitdirectory = true
-                elements[i].addEventListener("change", fileInputChange)
+                elements[i].addEventListener("change", fileEvent)
             } else
                 console.error("Directory selection not supported in this browser.");
         } else if (window.showOpenFilePicker)
-            elements[i].addEventListener("click", selectFile);
+            elements[i].addEventListener("click", fileEvent);
         else
-            elements[i].addEventListener("change", fileInputChange);
+            elements[i].addEventListener("change", fileEvent);
     }
 }
 
-async function fileInputChange(event) {
-    const input = event.target;
-    const files = input.files;
-    let selected = inputs.get(input) || new Map()
-    for (let i = 0; i < files.length; i++) {
-        files[i].input = input
-        files[i].id = await getFileId(files[i])
-        if (selected.has(files[i].id)) {
-            console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+async function fileEvent(event) {
+    try {
+        const input = event.target;
+        let selected = inputs.get(input) || new Map()
+
+        let files = input.files;
+        if (!files.length) {
+            event.preventDefault()
+            const multiple = input.multiple
+            if (input.hasAttribute('directory')) {
+                let handle = await window.showDirectoryPicker();
+                let file = {
+                    name: handle.name,
+                    directory: '/',
+                    path: '/' + handle.name,
+                    type: 'text/directory',
+                    'content-type': 'text/directory'
+                }
+                file.input = input
+                file.id = await getFileId(file)
+                if (selected.has(file.id)) {
+                    console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+                }
+
+                file.handle = handle
+                selected.set(file.id, file)
+
+                files = await getDirectoryHandles(handle, handle.name)
+            } else {
+                files = await window.showOpenFilePicker({ multiple });
+            }
         }
 
-        selected.set(files[i].id, files[i])
-    }
-    inputs.set(input, selected);
-    console.log("FileList:", Array.from(selected.values()));
-    renderFiles(input)
-}
+        for (let i = 0; i < files.length; i++) {
+            const handle = files[i]
+            if (files[i].kind === 'file') {
+                files[i] = await files[i].getFile();
+                files[i].handle = handle
+            } else if (files[i].kind === 'directory') {
+                files[i].handle = handle
+            }
 
-async function selectFile(event) {
-    event.preventDefault()
-    const input = event.target;
-    let selected = inputs.get(input) || new Map()
-    try {
-        const multiple = input.multiple
-        const selectedFiles = await window.showOpenFilePicker({ multiple });
-
-        for (const handle of selectedFiles) {
-            let file = await handle.getFile()
-            file.input = input
-            file.id = await getFileId(file)
-            if (selected.has(file.id)) {
+            files[i].directory = handle.directory || '/'
+            files[i].parentDirectory = handle.parentDirectory || ''
+            files[i].path = handle.path || '/' + handle.name
+            files[i]['content-type'] = files[i].type
+            files[i].input = input
+            files[i].id = await getFileId(files[i])
+            if (selected.has(files[i].id)) {
                 console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
             }
 
-            file.handle = handle
-            selected.set(file.id, file)
+            selected.set(files[i].id, files[i])
         }
 
         if (selected.size) {
             inputs.set(input, selected);
             console.log("Files selected:", selected);
             renderFiles(input)
-        }
-
-    } catch (error) {
-        if (error.name !== 'AbortError') {
-            console.error("Error selecting files:", error);
-        }
-    }
-}
-
-async function selectDirectory(event) {
-    event.preventDefault()
-    const input = event.target;
-    let selected = inputs.get(input) || new Map()
-
-    try {
-        const handle = await window.showDirectoryPicker();
-        let file = {
-            name: handle.name,
-            directory: '/',
-            path: '/' + handle.name,
-            type: 'text/directory',
-            'content-type': 'text/directory'
-        }
-        file.input = input
-        file.id = await getFileId(file)
-        if (selected.has(file.id)) {
-            console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
-        }
-
-        file.handle = handle
-        selected.set(file.id, file)
-
-        const handles = await getSelectedDirectoryHandles(handle, handle.name)
-        for (let i = 0; i < handles.length; i++) {
-            let file = handles[i]
-            if (handles[i].kind === 'file') {
-                file = await handles[i].getFile();
-                file.directory = handles[i].directory
-                file.parentDirectory = handles[i].parentDirectory
-                file.path = handles[i].path
+            const isImport = input.getAttribute('import')
+            if (isImport || isImport == "") {
+                Import(input)
             }
 
-            file.input = input
-            file.id = await getFileId(file)
-            if (selected.has(file.id)) {
-                console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
-            }
-
-            file.handle = handles[i]
-            file['content-type'] = file.type
-
-            selected.set(file.id, file)
-        }
-
-        if (selected.size) {
-            inputs.set(input, selected);
-            console.log("Directory selected:", selected);
-            renderFiles(input)
         }
     } catch (error) {
         if (error.name !== 'AbortError') {
             console.error("Error selecting directory:", error);
         }
     }
+
 }
 
-async function getSelectedDirectoryHandles(handle, name) {
+async function getDirectoryHandles(handle, name) {
     let handles = [];
     for await (const entry of handle.values()) {
         entry.directory = '/' + name
@@ -166,7 +131,7 @@ async function getSelectedDirectoryHandles(handle, name) {
         } else if (entry.kind === 'directory') {
             entry.type = 'text/directory'
             handles.push(entry);
-            const entries = await getSelectedDirectoryHandles(entry, name + '/' + entry.name);
+            const entries = await getDirectoryHandles(entry, name + '/' + entry.name);
             handles = handles.concat(entries);
         }
     }
@@ -447,6 +412,54 @@ async function Import(input) {
     let response = await crud.createDocument(data);
 
     return response
+}
+
+async function Export(btn) {
+    const item_id = btn.getAttribute('template_id');
+    let item = this.items.get(item_id)
+    if (!item) return;
+
+
+    let Item = new Object(item)
+    Item.filter.startIndex = 0;
+    delete Item.el
+    delete Item.count
+
+    let data;
+    if (crud) {
+        data = await crud.readDocument(Item);
+    }
+    // TODO: get from local data source
+    exportFile(data);
+}
+
+async function exportFile(data) {
+    let file_name = data.type || 'download';
+    let exportData = JSON.stringify(data.document, null, 4);
+    let blob = new Blob([exportData], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+
+    let link = document.createElement("a");
+
+    link.href = url;
+    link.download = file_name;
+
+    document.body.appendChild(link);
+
+    link.dispatchEvent(
+        new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        })
+    );
+
+    URL.revokeObjectURL(url);
+    link.remove();
+
+    document.dispatchEvent(new CustomEvent('exported', {
+        detail: {}
+    }));
 }
 
 async function create(directory, type, name, src = "") {
