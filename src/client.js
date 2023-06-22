@@ -105,7 +105,7 @@ async function fileEvent(event) {
             renderFiles(input)
             const isImport = input.getAttribute('import')
             if (isImport || isImport == "") {
-                Import(input)
+                // Import(input)
             }
 
         }
@@ -259,8 +259,9 @@ async function renderFiles(input) {
     }
 }
 
-async function fileFormAction(btn, params, action) {
-    const form = btn.closest('form')
+async function fileFormAction(data) {
+    const action = data.name
+    const form = data.element.closest('form')
     let inputs = form.querySelectorAll('input[type="file"]')
     for (let i = 0; i < inputs.length; i++) {
         if (action === 'upload')
@@ -283,17 +284,19 @@ async function fileFormAction(btn, params, action) {
 
 }
 
-async function fileRenderAction(btn, params, action) {
-    let file_id = btn.getAttribute('file_id');
+async function fileRenderAction(data) {
+    const action = data.name
+    const element = data.element
+    let file_id = element.getAttribute('file_id');
     if (!file_id) {
-        const closestElement = btn.closest('[file_id]');
+        const closestElement = element.closest('[file_id]');
         if (closestElement) {
             file_id = closestElement.getAttribute('file_id');
         }
     }
     if (!file_id) return
 
-    let templateid = btn.closest('[templateid]')
+    let templateid = element.closest('[templateid]')
     if (templateid)
         templateid = templateid.getAttribute('templateid')
 
@@ -304,13 +307,13 @@ async function fileRenderAction(btn, params, action) {
     if (!file) return
 
     if (action === 'createFile') {
-        let name = btn.getAttribute('value')
+        let name = element.getAttribute('value')
         create(file, 'file', name)
     }
     else if (action === 'deleteFile')
         Delete(file)
     else if (action === 'createDirectory') {
-        let name = btn.getAttribute('value')
+        let name = element.getAttribute('value')
         create(file, 'directory', name)
     }
     else if (action === 'deleteDirectory')
@@ -548,50 +551,56 @@ observer.init({
 
 action.init({
     name: "upload",
-    callback: (btn, params) => {
-        fileFormAction(btn, params, "upload")
+    callback: (data) => {
+        fileFormAction(data)
     }
 })
 
 action.init({
     name: "saveLocally",
-    callback: (btn, params) => {
-        fileFormAction(btn, params, "saveLocally")
+    callback: (data) => {
+        fileFormAction(data)
     }
 })
 
 action.init({
     name: "import",
-    endEvent: "imported",
-    callback: (btn, params) => {
-        fileFormAction(btn, params, "saveLocally")
+    callback: (data) => {
+        fileFormAction(data)
+    }
+})
+
+action.init({
+    name: "export",
+    callback: (data) => {
+        fileFormAction(data)
     }
 })
 
 action.init({
     name: "createFile",
-    callback: (btn, params) => {
-        fileRenderAction(btn, params, "createFile")
+    callback: (data) => {
+        fileRenderAction(data)
     }
 })
 
 action.init({
     name: "deleteFile",
-    callback: (btn, params) => {
-        fileRenderAction(btn, params, "deleteFile")
+    callback: (data) => {
+        fileRenderAction(data)
     }
 })
 action.init({
     name: "createDirectory",
-    callback: (btn, params) => {
-        fileRenderAction(btn, params, "createDirectory")
+    callback: (data) => {
+        fileRenderAction(data)
     }
 })
 
 action.init({
     name: "deleteDirectory",
-    callback: (btn, params) => {
-        fileRenderAction(btn, params, "deleteDirectory")
+    callback: (data) => {
+        fileRenderAction(data)
     }
 })
 
