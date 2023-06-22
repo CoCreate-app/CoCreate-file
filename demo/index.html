@@ -33,7 +33,10 @@
         </form>
 
         <form>
-            <input type="file" directory template_id="file-preview" />
+            <input
+                type="file"
+                directory
+                render-selector="[template='file-preview']" />
 
             <button actions="saveLocally">saveLocally</button>
         </form>
@@ -52,8 +55,7 @@
         </div>
 
         <form>
-            <div type="file" directory></div>
-            <button actions="upload">upload</button>
+            <button actions="export" collection="files">export</button>
         </form>
 
         <!-- <script src="../dist/CoCreate-file.js"></script> -->
