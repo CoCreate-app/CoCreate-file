@@ -248,16 +248,29 @@ function readFile(file) {
 async function renderFiles(input) {
     let selector = input.getAttribute('render-selector')
     if (!selector) return
+
     let templates = document.querySelectorAll(selector)
     for (let i = 0; i < templates.length; i++) {
         templates[i].setAttribute('file_id', '{{id}}')
-        const data = await getFiles(input, false)
-        if (!data.length) return
-        render.data({
-            selector,
-            data
-        });
+
+        if (templates[i].CoCreate) {
+            if (templates[i].CoCreate.file)
+                templates[i].CoCreate.file.input
+            else
+                templates[i].CoCreate.file = { input }
+        } else {
+            templates[i].CoCreate = { file: { input } }
+        }
     }
+
+    const data = await getFiles(input, false)
+    if (!data.length) return
+
+    render.data({
+        selector,
+        data
+    });
+
 
 }
 
@@ -265,11 +278,6 @@ async function fileFormAction(data) {
     const action = data.name
     const form = data.element.closest('form')
     let inputs = form.querySelectorAll('input[type="file"]')
-    // if (action === 'export') {
-    //     Export(inputs)
-    // } else if (action === 'download') {
-    //     save(inputs[i])
-    // }
     for (let i = 0; i < inputs.length; i++) {
         if (action === 'upload')
             upload(inputs[i])
@@ -295,15 +303,18 @@ async function fileRenderAction(data) {
     const action = data.name
     const element = data.element
 
-    let input = element.fileInput
+    let input
     let file_id = element.getAttribute('file_id');
     if (!file_id) {
         const closestElement = element.closest('[file_id]');
         if (closestElement) {
-            input = closestElement.renderedData.input
+            if (closestElement.CoCreate && closestElement.CoCreate.file)
+                input = closestElement.CoCreate.file.input
+
             file_id = closestElement.getAttribute('file_id');
         }
-    }
+    } else if (element.CoCreate && element.CoCreate.file)
+        input = element.CoCreate.file.input
 
     if (!file_id || !input) return
 
