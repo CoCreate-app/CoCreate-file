@@ -246,17 +246,19 @@ function readFile(file) {
 }
 
 async function renderFiles(input) {
-    let template_id = input.getAttribute('template_id')
-    if (template_id) {
-        let template = document.querySelector(`[template="${template_id}"]`)
-        template.setAttribute('file_id', '{{id}}')
+    let selector = input.getAttribute('render-selector')
+    if (!selector) return
+    let templates = document.querySelectorAll(selector)
+    for (let i = 0; i < templates.length; i++) {
+        templates[i].setAttribute('file_id', '{{id}}')
         const data = await getFiles(input, false)
         if (!data.length) return
         render.data({
-            selector: `[template='${template_id}']`,
+            selector,
             data
         });
     }
+
 }
 
 async function fileFormAction(data) {
@@ -292,21 +294,18 @@ async function fileFormAction(data) {
 async function fileRenderAction(data) {
     const action = data.name
     const element = data.element
+
+    let input = element.fileInput
     let file_id = element.getAttribute('file_id');
     if (!file_id) {
         const closestElement = element.closest('[file_id]');
         if (closestElement) {
+            input = closestElement.renderedData.input
             file_id = closestElement.getAttribute('file_id');
         }
     }
-    if (!file_id) return
 
-    let templateid = element.closest('[templateid]')
-    if (templateid)
-        templateid = templateid.getAttribute('templateid')
-
-    const input = document.querySelector(`[type="file"][template_id="${templateid}"]`)
-    if (!input) return
+    if (!file_id || !input) return
 
     let file = inputs.get(input).get(file_id)
     if (!file) return
@@ -427,7 +426,7 @@ async function Import(input) {
 
 async function Export(btn, inputs) {
     let data = crud.getAttributes(btn);
-    const template_id = btn.getAttribute('template_id');
+    const renderSelector = btn.getAttribute('render-selector');
 
     if (data.storage || data.database || data.collection) {
         let name = data.name
@@ -442,7 +441,7 @@ async function Export(btn, inputs) {
             data = data.document[0][name]
         }
 
-    } else if (template_id) {
+    } else if (renderSelector) {
         console.log('export json data used to render templates')
     } else {
         data = getFiles(inputs)
@@ -572,12 +571,12 @@ observer.init({
 observer.init({
     name: 'fileRender',
     observe: ['attributes'],
-    attributeName: ['template_id'],
+    attributeName: ['render-selector'],
     target: 'input[type="file"]',
     callback: mutation => renderFiles(mutation.target)
 });
 
-actions.init(
+actions.init([
     {
         name: ["upload", "download", "saveLocally", "import", "export"],
         callback: (action) => {
@@ -590,7 +589,7 @@ actions.init(
             fileRenderAction(action)
         }
     }
-)
+])
 
 init()
 
