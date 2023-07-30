@@ -36,12 +36,12 @@
             <input
                 type="file"
                 directory
-                render-selector="[template='file-preview']" />
+                render-selector="document; [template]" />
 
             <button actions="saveLocally">saveLocally</button>
         </form>
 
-        <div template>
+        <div template file_id="{{id}}">
             <button actions="createFile" value="tesing.js">createFile</button>
             <button actions="deleteFile">deleteFile</button>
             <button actions="createDirectory">createDirectory</button>
