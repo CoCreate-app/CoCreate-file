@@ -1,10 +1,12 @@
-import observer from '@cocreate/observer';
+import Observer from '@cocreate/Observer';
 import crud from '@cocreate/crud-client';
-import actions from '@cocreate/actions';
+import Actions from '@cocreate/Actions';
 import render from '@cocreate/render';
+import { queryElements } from '@cocreate/utils';
 import '@cocreate/element-prototype';
 
-let inputs = new Map();
+const inputs = new Map();
+const Files = new Map();
 
 function init(elements) {
     // Returns an array of elements.
@@ -48,7 +50,6 @@ async function fileEvent(event) {
     try {
         const input = event.target;
         let selected = inputs.get(input) || new Map()
-
         let files = input.files;
         if (!files.length) {
             event.preventDefault()
@@ -70,6 +71,7 @@ async function fileEvent(event) {
 
                 file.handle = handle
                 selected.set(file.id, file)
+                Files.set(file.id, file)
 
                 files = await getDirectoryHandles(handle, handle.name)
             } else {
@@ -86,6 +88,9 @@ async function fileEvent(event) {
                 files[i].handle = handle
             }
 
+            if (!files[i].src)
+                files[i] = await readFile(files[i])
+
             files[i].directory = handle.directory || '/'
             files[i].parentDirectory = handle.parentDirectory || ''
             files[i].path = handle.path || '/' + handle.name
@@ -97,15 +102,24 @@ async function fileEvent(event) {
             }
 
             selected.set(files[i].id, files[i])
+            Files.set(files[i].id, files[i])
         }
 
         if (selected.size) {
             inputs.set(input, selected);
             console.log("Files selected:", selected);
-            renderFiles(input)
+
+            if (!input.renderValue)
+                input.renderValue(selected.values())
+            // render.render({
+            //     source: input,
+            //     data
+            // });
+
             const isImport = input.getAttribute('import')
-            if (isImport || isImport == "") {
-                // Import(input)
+            const isRealtime = input.getAttribute('realtime')
+            if (isRealtime !== 'false' && (isImport || isImport == "")) {
+                Import(input)
             }
 
         }
@@ -138,7 +152,7 @@ async function getDirectoryHandles(handle, name) {
     return handles;
 }
 
-async function getFileId(file, selected) {
+async function getFileId(file) {
 
     if (file.id = file.path || file.webkitRelativePath) {
         return file.id;
@@ -151,7 +165,7 @@ async function getFileId(file, selected) {
     }
 }
 
-async function getFiles(fileInputs, isGetData) {
+async function getFiles(fileInputs) {
     const files = [];
 
     if (!Array.isArray(fileInputs))
@@ -159,20 +173,22 @@ async function getFiles(fileInputs, isGetData) {
 
     for (let input of fileInputs) {
         const selected = inputs.get(input)
-        if (selected)
+        if (selected) {
             for (let file of selected.values()) {
                 if (!file.src)
                     file = await readFile(file)
-                if (isGetData !== false)
-                    file = getData({ ...file })
+
+                file = getCustomData({ ...file })
                 files.push(file)
             }
+        }
     }
 
     return files
 }
 
-function getData(file) {
+// gets file custom data
+function getCustomData(file) {
     let form = document.querySelector(`[file_id="${file.id}"]`);
     if (form) {
         let elements = form.querySelectorAll('[file]');
@@ -245,144 +261,80 @@ function readFile(file) {
     });
 }
 
-async function renderFiles(input) {
-    let selector = input.getAttribute('render-selector')
-    if (!selector) return
-
-    let templates = document.querySelectorAll(selector)
-    for (let i = 0; i < templates.length; i++) {
-        templates[i].setAttribute('file_id', '{{id}}')
-
-        if (templates[i].CoCreate) {
-            if (templates[i].CoCreate.file)
-                templates[i].CoCreate.file.input
-            else
-                templates[i].CoCreate.file = { input }
-        } else {
-            templates[i].CoCreate = { file: { input } }
-        }
-    }
-
-    const data = await getFiles(input, false)
-    if (!data.length) return
-
-    render.data({
-        selector,
-        data
-    });
-
-
-}
-
-async function fileFormAction(data) {
-    const action = data.name
-    const form = data.element.closest('form')
-    let inputs = form.querySelectorAll('input[type="file"]')
-    for (let i = 0; i < inputs.length; i++) {
-        if (action === 'upload')
-            upload(inputs[i])
-        else if (action === 'saveLocally' || action === 'saveAs') {
-            save(inputs[i])
-        }
-        else if (action === 'export') {
-            Export(inputs[i])
-        }
-        else if (action === 'import') {
-            Import(inputs[i])
-        } else {
-        }
-    }
-
-    document.dispatchEvent(new CustomEvent(action, {
-        detail: {}
-    }));
-
-}
-
-async function fileRenderAction(data) {
-    const action = data.name
-    const element = data.element
-
-    let input
-    let file_id = element.getAttribute('file_id');
-    if (!file_id) {
-        const closestElement = element.closest('[file_id]');
-        if (closestElement) {
-            if (closestElement.CoCreate && closestElement.CoCreate.file)
-                input = closestElement.CoCreate.file.input
-
-            file_id = closestElement.getAttribute('file_id');
-        }
-    } else if (element.CoCreate && element.CoCreate.file)
-        input = element.CoCreate.file.input
-
-    if (!file_id || !input) return
-
-    let file = inputs.get(input).get(file_id)
-    if (!file) return
-
-    if (action === 'createFile') {
-        let name = element.getAttribute('value')
-        create(file, 'file', name)
-    }
-    else if (action === 'deleteFile')
-        Delete(file)
-    else if (action === 'createDirectory') {
-        let name = element.getAttribute('value')
-        create(file, 'directory', name)
-    }
-    else if (action === 'deleteDirectory')
-        Delete(file)
-
-    document.dispatchEvent(new CustomEvent(action, {
-        detail: {}
-    }));
-
-}
-
-async function save(input, action) {
+async function save(element, action, data) {
     try {
-        let files = await getFiles(input)
+        if (!data)
+            data = []
 
-        for (let i = 0; i < files.length; i++) {
-            if (!files[i].src) continue
+        if (!Array.isArray(element))
+            element = [element]
 
-            if (files[i].handle && action !== 'download') {
-                if (action === 'saveAs') {
-                    if (files[i].kind === 'file') {
-                        const options = {
-                            suggestedName: files[i].name,
-                            types: [
-                                {
-                                    description: 'Text Files',
-                                }
-                            ],
-                        };
-                        files[i].handle = await window.showSaveFilePicker(options);
-                    } else if (files[i].kind === 'directory') {
-                        // Create a new subdirectory
-                        files[i].handle = await files[i].handle.getDirectoryHandle('new_directory', { create: true });
-                        return
-                    }
-                }
-
-                const writable = await files[i].handle.createWritable();
-                await writable.write(files[i].src);
-                await writable.close();
-
+        for (let i = 0; i < element.length; i++) {
+            const inputs = []
+            if (element[i].type === 'file')
+                inputs.push(element[i])
+            else if (element[i].tagName === 'form') {
+                let fileInputs = element[i].querySelectorAll('input[type="file"]')
+                inputs.push(...fileInputs)
             } else {
-                const blob = new Blob([files[i].src], { type: files[i].type });
-
-                // Create a temporary <a> element to trigger the file download
-                const downloadLink = document.createElement('a');
-                downloadLink.href = URL.createObjectURL(blob);
-                downloadLink.download = files[i].name;
-
-                // Trigger the download
-                downloadLink.click();
+                const form = element[i].closest('form')
+                if (form)
+                    inputs.push(...form.querySelectorAll('input[type="file"]'))
             }
 
+            for (let input of inputs) {
+                let files = await getFiles(input)
+
+                for (let i = 0; i < files.length; i++) {
+                    if (!files[i].src) continue
+
+                    if (files[i].handle && action !== 'download') {
+                        if (action === 'saveAs') {
+                            if (files[i].kind === 'file') {
+                                const options = {
+                                    suggestedName: files[i].name,
+                                    types: [
+                                        {
+                                            description: 'Text Files',
+                                        }
+                                    ],
+                                };
+                                files[i].handle = await window.showSaveFilePicker(options);
+                            } else if (files[i].kind === 'directory') {
+                                // Create a new subdirectory
+                                files[i].handle = await files[i].handle.getDirectoryHandle('new_directory', { create: true });
+                                return
+                            }
+                        }
+
+                        if (files[i].handle.kind === 'directory') continue
+
+                        const writable = await files[i].handle.createWritable();
+                        await writable.write(files[i].src);
+                        await writable.close();
+
+                    } else {
+                        const blob = new Blob([files[i].src], { type: files[i].type });
+
+                        // Create a temporary <a> element to trigger the file download
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = URL.createObjectURL(blob);
+                        downloadLink.download = files[i].name;
+
+                        // Trigger the download
+                        downloadLink.click();
+                    }
+
+                }
+            }
+
+            let queryElements = queryElements({ element: element[i], prefix: action })
+            if (queryElements) {
+                save(queryElements, action, data)
+            }
         }
+        return data
+
     } catch (error) {
         if (error.name !== 'AbortError') {
             console.error("Error selecting files:", error);
@@ -390,100 +342,198 @@ async function save(input, action) {
     }
 }
 
-async function upload(input) {
-    let collection = input.getAttribute('collection')
-    let document_id = input.getAttribute('document_id')
-    let files = await getFiles(input)
+async function upload(element, data) {
+    if (!data)
+        data = []
 
-    let document
-    if (input.name) {
-        document = { _id: document_id, [input.name]: files }
-    } else {
-        document = files
+    if (!Array.isArray(element))
+        element = [element]
+
+    for (let i = 0; i < element.length; i++) {
+        const inputs = []
+        if (element[i].type === 'file')
+            inputs.push(element[i])
+        else if (element[i].tagName === 'form') {
+            let fileInputs = element[i].querySelectorAll('input[type="file"]')
+            inputs.push(...fileInputs)
+        } else {
+            const form = element[i].closest('form')
+            if (form)
+                inputs.push(...form.querySelectorAll('input[type="file"]'))
+        }
+
+        for (let input of inputs) {
+            let Data = crud.getObject(input);
+            if (Data.type) {
+                if (input.getFilter)
+                    Data.filter = input.getFilter()
+
+                let files = await getFiles(input)
+
+                let name = getAttribute('name')
+                if (Data.type === 'name')
+                    Data.type = 'document'
+
+                if (Data.type === 'document') {
+                    let document_id = input.getAttribute('document_id')
+                    if (name) {
+                        Data[Data.type] = { _id: document_id, [name]: files }
+                    } else {
+                        Data[Data.type] = files
+                    }
+                }
+
+                let action = 'update' + Data.type.charAt(0).toUpperCase() + Data.type.slice(1)
+                if (crud[action]) {
+                    let response = await crud[action](Data)({
+                        collection,
+                        document,
+                        upsert: true
+                    });
+
+                    data.push(response)
+                    if (response && (!document_id || document_id !== response.document_id)) {
+                        crud.setDocumentId(element, collection, response.document_id);
+                    }
+                }
+            }
+        }
+
+        let queriedElements = queryElements({ element: element[i], prefix: 'upload' })
+        if (queriedElements) {
+            upload(queriedElements, data)
+        }
     }
-
-    let response = await crud.updateDocument({
-        collection,
-        document,
-        upsert: true
-    });
-
-    if (response && (!document_id || document_id !== response.document_id)) {
-        crud.setDocumentId(element, collection, response.document_id);
-    }
-
-    return response
+    return data
 }
 
-async function Import(input) {
-    let files = await getFiles(input)
-    const data = files.reduce((result, { src }) => {
-        try {
-            const parsedSrc = JSON.parse(src);
-            if (Array.isArray(parsedSrc))
-                result.push(...parsedSrc);
-            else
-                result.push(parsedSrc);
-        } catch (error) {
-            console.error(`Error parsing JSON: ${error}`);
+async function Import(element, data) {
+    if (!data)
+        data = []
+
+    if (!Array.isArray(element))
+        element = [element]
+
+    for (let i = 0; i < element.length; i++) {
+        const inputs = []
+        if (element[i].type === 'file')
+            inputs.push(element[i])
+        else if (element[i].tagName === 'form') {
+            let fileInputs = element[i].querySelectorAll('input[type="file"]')
+            inputs.push(...fileInputs)
+        } else {
+            const form = element[i].closest('form')
+            if (form)
+                inputs.push(...form.querySelectorAll('input[type="file"]'))
         }
-        return result;
-    }, []);
 
-    let response = await crud.createDocument(data);
+        if (inputs.length) {
+            let Data = await getFiles(inputs)
+            Data.reduce((result, { src }) => {
+                try {
+                    const parsedSrc = JSON.parse(src);
+                    if (Array.isArray(parsedSrc))
+                        data.push(...parsedSrc);
+                    else
+                        data.push(parsedSrc);
+                } catch (error) {
+                    console.error(`Error parsing JSON: ${error}`);
+                }
+                return result;
+            }, []);
 
-    return response
+        }
+
+        if (element[i].type !== 'file') {
+            let Data = crud.getObject(element[i]);
+            if (Data.type) {
+                if (element[i].getFilter)
+                    Data.filter = element[i].getFilter()
+
+                if (Data.type === 'name')
+                    Data.type = 'document'
+
+                data.push(Data)
+            }
+        }
+
+        if (data.length) {
+            for (let i = 0; i < data.length; i++) {
+                let action = 'create' + data[i].type.charAt(0).toUpperCase() + data[i].type.slice(1)
+                if (crud[action]) {
+                    data[i] = await crud[action](data[i])
+                }
+            }
+        }
+
+        let queriedElements = queryElements({ element: element[i], prefix: 'import' })
+        if (queriedElements) {
+            Import(queriedElements, data)
+        }
+    }
+    return data
 }
 
-async function Export(btn, inputs) {
-    let data = crud.getAttributes(btn);
-    const renderSelector = btn.getAttribute('render-selector');
+async function Export(element, data) {
+    if (!data)
+        data = []
 
-    if (data.storage || data.database || data.collection) {
-        let name = data.name
-        if (data.document_id) {
-            data.document = { _id: data.document_id }
-            delete data.document_id
-            delete data.name
+    if (!Array.isArray(element))
+        element = [element]
+
+    for (let i = 0; i < element.length; i++) {
+        const inputs = []
+        if (element[i].type === 'file')
+            inputs.push(element[i])
+        else if (element[i].tagName === 'form') {
+            let fileInputs = element[i].querySelectorAll('input[type="file"]')
+            inputs.push(...fileInputs)
+        } else {
+            const form = element[i].closest('form')
+            if (form)
+                inputs.push(...form.querySelectorAll('input[type="file"]'))
         }
-        data = await crud.readDocument(data);
 
-        if (name) {
-            data = data.document[0][name]
+        if (inputs.length)
+            data.push(...getFiles(inputs))
+
+        let Data = crud.getObject(element[i]);
+        if (Data.type) {
+            if (element[i].getFilter)
+                Data.filter = element[i].getFilter()
+
+            if (Data.type === 'name')
+                Data.type = 'document'
+            let action = 'read' + Data.type.charAt(0).toUpperCase() + Data.type.slice(1)
+            if (crud[action]) {
+                Data = await crud[action](Data)
+                data.push(...Data[Data.type])
+            }
         }
 
-    } else if (renderSelector) {
-        console.log('export json data used to render templates')
-    } else {
-        data = getFiles(inputs)
+        let queriedElements = queryElements({ element: element[i], prefix: 'export' })
+        if (queriedElements) {
+            Export(queriedElements, data)
+        }
+
     }
-    // let item = this.items.get(item_id)
-    // if (!item) return;
 
+    if (data.length)
+        exportFile(data);
 
-    // let Item = new Object(item)
-    // Item.filter.index = 0;
-    // delete Item.el
-    // delete Item.count
-
-    // let data;
-    // if (crud) {
-    //     data = await crud.readDocument(Item);
-    // }
-    // TODO: get from local data source
-    exportFile(data);
+    return data
 }
 
 async function exportFile(data) {
-    let file_name = data.type || 'download';
-    let exportData = JSON.stringify(data.document, null, 4);
+    let name = data.type || 'download';
+    let exportData = JSON.stringify(data, null, 2);
     let blob = new Blob([exportData], { type: "application/json" });
     let url = URL.createObjectURL(blob);
 
     let link = document.createElement("a");
 
     link.href = url;
-    link.download = file_name;
+    link.download = name;
 
     document.body.appendChild(link);
 
@@ -497,10 +547,40 @@ async function exportFile(data) {
 
     URL.revokeObjectURL(url);
     link.remove();
+}
 
-    document.dispatchEvent(new CustomEvent('exported', {
+async function fileRenderAction(action) {
+    const element = action.element
+
+    let file_id = element.getAttribute('file_id');
+    if (!file_id) {
+        const closestElement = element.closest('[file_id]');
+        if (closestElement)
+            file_id = closestElement.getAttribute('file_id');
+    }
+
+    let input = Files.get(file_id).input
+
+    if (!file_id || !input) return
+
+    let file = inputs.get(input).get(file_id)
+    if (!file) return
+
+    if (action.name === 'createFile') {
+        let name = element.getAttribute('value')
+        create(file, 'file', name)
+    } else if (action.name === 'deleteFile')
+        Delete(file)
+    else if (action.name === 'createDirectory') {
+        let name = element.getAttribute('value')
+        create(file, 'directory', name)
+    } else if (action.name === 'deleteDirectory')
+        Delete(file)
+
+    document.dispatchEvent(new CustomEvent(action.name, {
         detail: {}
     }));
+
 }
 
 async function create(directory, type, name, src = "") {
@@ -563,7 +643,7 @@ async function Delete(file) {
     }
 }
 
-observer.init({
+Observer.init({
     name: 'CoCreateFileAddedNodes',
     observe: ['addedNodes'],
     target: 'input[type="file"]',
@@ -571,7 +651,7 @@ observer.init({
 
 });
 
-observer.init({
+Observer.init({
     name: 'CoCreateFileAttributes',
     observe: ['attributes'],
     attributeName: ['type'],
@@ -579,19 +659,26 @@ observer.init({
     callback: mutation => init(mutation.target)
 });
 
-observer.init({
-    name: 'fileRender',
-    observe: ['attributes'],
-    attributeName: ['render-selector'],
-    target: 'input[type="file"]',
-    callback: mutation => renderFiles(mutation.target)
-});
-
-actions.init([
+Actions.init([
     {
         name: ["upload", "download", "saveLocally", "import", "export"],
         callback: (action) => {
-            fileFormAction(action)
+            if (action.name === 'upload')
+                upload(action.element)
+            else if (action.name === 'saveLocally' || action.name === 'saveAs') {
+                save(action.element)
+            } else if (action.name === 'export') {
+                Export(action.element)
+            } else if (action.name === 'import') {
+                Import(action.element)
+            } else {
+                // Something...
+            }
+
+            document.dispatchEvent(new CustomEvent(action.name, {
+                detail: {}
+            }));
+
         }
     },
     {
@@ -604,4 +691,4 @@ actions.init([
 
 init()
 
-export default { getFiles, create, Delete }
+export default { inputs, getFiles, create, Delete }
