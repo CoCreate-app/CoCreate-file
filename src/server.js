@@ -126,7 +126,8 @@ module.exports = async function file(CoCreateConfig) {
 
     if (config.email && config.password) {
         let request = {
-            collection: 'users',
+            method: 'signIn',
+            array: 'users',
             filter: {
                 query: [
                     { name: 'email', value: config.email, operator: '$eq' },
@@ -135,7 +136,7 @@ module.exports = async function file(CoCreateConfig) {
             }
         }
 
-        let response = await crud.socket.send('signIn', request)
+        let response = await crud.socket.send(request)
         let { success, token } = response;
 
         if (success) {
@@ -184,8 +185,8 @@ module.exports = async function file(CoCreateConfig) {
             let mimeType = mimeTypes[fileExtension]
             let pathName = '';
 
-            if (!directoryName && directory.document && directory.document.directory)
-                directoryName = directory.document.directory.replace('{{directory}}', '').trim()
+            if (!directoryName && directory.object && directory.object.directory)
+                directoryName = directory.object.directory.replace('{{directory}}', '').trim()
             else if (!directoryName)
                 directoryName = '/'
 
@@ -214,54 +215,54 @@ module.exports = async function file(CoCreateConfig) {
                 '{{content-type}}': mimeType
             }
 
-            let document = { ...directory.document }
-            if (!document.name)
-                document.name = "{{name}}"
-            if (!document.src)
-                document.src = "{{source}}"
-            if (!document.directory)
-                document.directory = "/{{directory}}"
-            if (!document.parentDirectory)
-                document.parentDirectory = "{{parentDirectory}}"
-            if (!document.path)
-                document.path = "{{path}}"
-            if (!document["content-type"])
-                document["content-type"] = '{{content-type}}'
-            if (!document.public && document.public != false && document.public != 'false')
-                document.public = 'true'
+            let object = { ...directory.object }
+            if (!object.name)
+                object.name = "{{name}}"
+            if (!object.src)
+                object.src = "{{source}}"
+            if (!object.directory)
+                object.directory = "/{{directory}}"
+            if (!object.parentDirectory)
+                object.parentDirectory = "{{parentDirectory}}"
+            if (!object.path)
+                object.path = "{{path}}"
+            if (!object["content-type"])
+                object["content-type"] = '{{content-type}}'
+            if (!object.public && object.public != false && object.public != 'false')
+                object.public = 'true'
 
-            let object = {
-                collection: directory.collection || 'files',
-                document
+            let newObject = {
+                array: directory.array || 'files',
+                object
             }
-            for (const key of Object.keys(directory.document)) {
-                if (typeof directory.document[key] == 'string') {
+            for (const key of Object.keys(directory.object)) {
+                if (typeof directory.object[key] == 'string') {
 
-                    let variables = directory.document[key].match(/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g);
+                    let variables = directory.object[key].match(/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g);
                     if (variables) {
                         for (let variable of variables) {
                             if (variable == '{{directory}}') {
                                 if (parentDirectory)
-                                    object.document[key] = values[variable]
+                                    newObject.object[key] = values[variable]
                                 else
-                                    object.document[key] = object.document[key].replace(variable, '');
+                                    newObject.object[key] = newObject.object[key].replace(variable, '');
                             }
                             else if (isDirectory && variable == '{{source}}')
-                                delete object.document[key]
+                                delete newObject.object[key]
                             else
-                                object.document[key] = object.document[key].replace(variable, values[variable]);
+                                newObject.object[key] = newObject.object[key].replace(variable, values[variable]);
                         }
                     }
 
                 }
             }
 
-            if (!object.document._id)
-                object.filter = {
+            if (!newObject.object._id)
+                newObject.filter = {
                     query: [{ name: 'path', value: pathName, operator: '$eq' }]
                 }
 
-            response = await runStore(object);
+            response = await runStore(newObject);
             if (response.error)
                 errorLog.push(response.error)
 
@@ -299,24 +300,24 @@ module.exports = async function file(CoCreateConfig) {
         let updatedSources = [];
 
         for (let i = 0; i < sources.length; i++) {
-            const { collection, document } = sources[i];
+            const { array, object } = sources[i];
 
             let source = { ...sources[i] };
             let keys = new Map()
             let response = {};
 
             try {
-                if (collection) {
-                    if (!document)
-                        document = {};
+                if (array) {
+                    if (!object)
+                        object = {};
                     else
-                        for (const key of Object.keys(document)) {
-                            if (typeof document[key] != 'string')
+                        for (const key of Object.keys(object)) {
+                            if (typeof object[key] != 'string')
                                 continue
 
-                            let variables = document[key].match(/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g);
+                            let variables = object[key].match(/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g);
                             if (variables) {
-                                keys.set(key, `${document[key]}`)
+                                keys.set(key, `${object[key]}`)
                                 let value = ""
                                 for (let variable of variables) {
                                     let entry = /{{\s*([\w\W]+)\s*}}/g.exec(variable);
@@ -337,18 +338,18 @@ module.exports = async function file(CoCreateConfig) {
                                         let content = new Buffer.from(binary).toString(read_type);
                                         if (content)
                                             value += content
-                                        // document[key] = document[key].replace(variable, content);
+                                        // object[key] = object[key].replace(variable, content);
                                     }
                                 }
-                                document[key] = value
+                                object[key] = value
                             }
 
                         }
 
-                    let data = { collection, document }
-                    if (!document._id && document.path)
+                    let data = { array, object }
+                    if (!object._id && object.path)
                         data.filter = {
-                            query: [{ name: 'path', value: document.path, operator: '$eq' }]
+                            query: [{ name: 'path', value: object.path, operator: '$eq' }]
                         }
 
                     response = await runStore(data);
@@ -357,11 +358,11 @@ module.exports = async function file(CoCreateConfig) {
                 console.log(err)
                 process.exit()
             }
-            if (response.document && response.document[0] && response.document[0]._id) {
+            if (response.object && response.object[0] && response.object[0]._id) {
                 for (const [key, value] of keys) {
-                    source.document[key] = value
+                    source.object[key] = value
                 }
-                source.document._id = response.document[0]._id
+                source.object._id = response.object[0]._id
             } else {
                 console.log('_id could not be found')
                 process.exit()
@@ -377,13 +378,15 @@ module.exports = async function file(CoCreateConfig) {
     async function runStore(data) {
         try {
             let response;
-            if (!data.document._id && !data.filter) {
-                response = await crud.createDocument({
+            if (!data.object._id && !data.filter) {
+                response = await crud.send({
+                    method: 'create.object',
                     ...config,
                     ...data
                 })
             } else {
-                response = await crud.updateDocument({
+                response = await crud.send({
+                    method: 'update.object',
                     ...config,
                     ...data,
                     upsert: true
