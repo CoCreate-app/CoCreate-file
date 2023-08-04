@@ -392,14 +392,14 @@ async function upload(element, data) {
 
                 let files = await getFiles(input)
 
-                let name = getAttribute('name')
-                if (Data.type === 'name')
+                let key = getAttribute('key')
+                if (Data.type === 'key')
                     Data.type = 'object'
 
                 if (Data.type === 'object') {
                     let object = input.getAttribute('object')
-                    if (name) {
-                        Data[Data.type] = { _id: object, [name]: files }
+                    if (key) {
+                        Data[Data.type] = { _id: object, [key]: files }
                     } else {
                         Data[Data.type] = files
                     }
@@ -472,7 +472,7 @@ async function Import(element, data) {
                 if (element[i].getFilter)
                     Data.filter = element[i].getFilter()
 
-                if (Data.type === 'name')
+                if (Data.type === 'key')
                     Data.type = 'object'
 
                 data.push(Data)
@@ -524,7 +524,7 @@ async function Export(element, data) {
             if (element[i].getFilter)
                 Data.filter = element[i].getFilter()
 
-            if (Data.type === 'name')
+            if (Data.type === 'key')
                 Data.type = 'object'
             let action = 'read' + Data.type.charAt(0).toUpperCase() + Data.type.slice(1)
             if (crud[action]) {

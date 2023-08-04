@@ -130,8 +130,8 @@ module.exports = async function file(CoCreateConfig) {
             array: 'users',
             filter: {
                 query: [
-                    { name: 'email', value: config.email, operator: '$eq' },
-                    { name: 'password', value: config.password, operator: '$eq' }
+                    { key: 'email', value: config.email, operator: '$eq' },
+                    { key: 'password', value: config.password, operator: '$eq' }
                 ]
             }
         }
@@ -259,7 +259,7 @@ module.exports = async function file(CoCreateConfig) {
 
             if (!newObject.object._id)
                 newObject.filter = {
-                    query: [{ name: 'path', value: pathName, operator: '$eq' }]
+                    query: [{ key: 'path', value: pathName, operator: '$eq' }]
                 }
 
             response = await runStore(newObject);
@@ -349,7 +349,7 @@ module.exports = async function file(CoCreateConfig) {
                     let data = { array, object }
                     if (!object._id && object.path)
                         data.filter = {
-                            query: [{ name: 'path', value: object.path, operator: '$eq' }]
+                            query: [{ key: 'path', value: object.path, operator: '$eq' }]
                         }
 
                     response = await runStore(data);
