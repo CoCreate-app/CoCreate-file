@@ -21,7 +21,8 @@
 // For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
 
 import Observer from '@cocreate/Observer';
-import crud from '@cocreate/crud-client';
+import Crud from '@cocreate/crud-client';
+import Elements from '@cocreate/elements';
 import Actions from '@cocreate/Actions';
 import render from '@cocreate/render';
 import { queryElements } from '@cocreate/utils';
@@ -385,7 +386,7 @@ async function upload(element, data) {
         }
 
         for (let input of inputs) {
-            let Data = crud.getObject(input);
+            let Data = Elements.getObject(input);
             if (Data.type) {
                 if (input.getFilter)
                     Data.filter = input.getFilter()
@@ -406,8 +407,8 @@ async function upload(element, data) {
                 }
 
                 let action = 'update' + Data.type.charAt(0).toUpperCase() + Data.type.slice(1)
-                if (crud[action]) {
-                    let response = await crud[action](Data)({
+                if (Crud[action]) {
+                    let response = await Crud[action](Data)({
                         array,
                         object,
                         upsert: true
@@ -415,7 +416,7 @@ async function upload(element, data) {
 
                     data.push(response)
                     if (response && (!object || object !== response.object)) {
-                        crud.setObjectId(element, array, response.object);
+                        Elements.setTypeValue(element, response);
                     }
                 }
             }
@@ -467,7 +468,7 @@ async function Import(element, data) {
         }
 
         if (element[i].type !== 'file') {
-            let Data = crud.getObject(element[i]);
+            let Data = Elements.getObject(element[i]);
             if (Data.type) {
                 if (element[i].getFilter)
                     Data.filter = element[i].getFilter()
@@ -482,8 +483,8 @@ async function Import(element, data) {
         if (data.length) {
             for (let i = 0; i < data.length; i++) {
                 let action = 'create' + data[i].type.charAt(0).toUpperCase() + data[i].type.slice(1)
-                if (crud[action]) {
-                    data[i] = await crud[action](data[i])
+                if (Crud[action]) {
+                    data[i] = await Crud[action](data[i])
                 }
             }
         }
@@ -519,7 +520,7 @@ async function Export(element, data) {
         if (inputs.length)
             data.push(...getFiles(inputs))
 
-        let Data = crud.getObject(element[i]);
+        let Data = Elements.getObject(element[i]);
         if (Data.type) {
             if (element[i].getFilter)
                 Data.filter = element[i].getFilter()
@@ -527,8 +528,8 @@ async function Export(element, data) {
             if (Data.type === 'key')
                 Data.type = 'object'
             let action = 'read' + Data.type.charAt(0).toUpperCase() + Data.type.slice(1)
-            if (crud[action]) {
-                Data = await crud[action](Data)
+            if (Crud[action]) {
+                Data = await Crud[action](Data)
                 data.push(...Data[Data.type])
             }
         }
