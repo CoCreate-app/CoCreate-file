@@ -1,3 +1,31 @@
+# [1.4.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.11...v1.4.0) (2023-08-16)
+
+
+### Bug Fixes
+
+* add conditional for newConfig.repositiories ([3fae340](https://github.com/CoCreate-app/CoCreate-file/commit/3fae340d2e616e9f9c046062c2816fa63b4900a1))
+* crud attributes renamed ([a379ef5](https://github.com/CoCreate-app/CoCreate-file/commit/a379ef5db63ec4bb5b0f4d7b4b7dab2656bb5bc9))
+* refactor(client.js): Simplify file selection event listener ([eeb34cc](https://github.com/CoCreate-app/CoCreate-file/commit/eeb34cca7fa405440a2936fa6a71b4b11bced015))
+* render-array and render-object attributes renamed to render ([1b2301f](https://github.com/CoCreate-app/CoCreate-file/commit/1b2301f184c9094ecf3a2d39927c956bf633e678))
+* replace -target -selector ([ceb96a7](https://github.com/CoCreate-app/CoCreate-file/commit/ceb96a7b60000b99ac3300e289ee88182d5415b0))
+* replaced @cocreate/crud-client with @cocreate/elements ([1e012b3](https://github.com/CoCreate-app/CoCreate-file/commit/1e012b3a2b3f74eece733bd0b56f3d54b2dc03c0))
+* startIndex renamed to index ([0f174c9](https://github.com/CoCreate-app/CoCreate-file/commit/0f174c986f853de188de13b34afb9841a0b8c62f))
+* updated actions callback data object ([edeef71](https://github.com/CoCreate-app/CoCreate-file/commit/edeef718350c06587d861b9f2406f8277dbb9cd4))
+* updated fetch-limit to filter-limit ([d40bbf7](https://github.com/CoCreate-app/CoCreate-file/commit/d40bbf788659007133eda4ed34bc33ca4b25c61e))
+* webpack.config and package.json make use of mode=production instead of process.env ([a563c53](https://github.com/CoCreate-app/CoCreate-file/commit/a563c534c95a0dc68e0e1c862cfa4ae03aee89d1))
+
+
+### Features
+
+* actions support finding elements and data using form, selctors, and crud ([c5fd048](https://github.com/CoCreate-app/CoCreate-file/commit/c5fd048c34a29b4b15ff389a56421a5c7ab43fcd))
+* Add support for multiple files and directories in file input field, ender and edit file data ([5c06442](https://github.com/CoCreate-app/CoCreate-file/commit/5c06442ac85b1088465aef67320bb5f8a012f519))
+* name attribute and variable renamed to key ([7c70ed2](https://github.com/CoCreate-app/CoCreate-file/commit/7c70ed2278cd25086a7d7b1039b110e0ddc6130e))
+* Refactor file form actions and add new 'download' action ([d593476](https://github.com/CoCreate-app/CoCreate-file/commit/d5934760e9f297570068d5710f448f195eb209b7))
+* Refactor file rendering ([47945de](https://github.com/CoCreate-app/CoCreate-file/commit/47945dede6677d8b4b74cae0a70043117ccc94a5))
+* Refactor Import function to import files into the system. ([99f48a7](https://github.com/CoCreate-app/CoCreate-file/commit/99f48a700ff3ceb51dbc51be024923a589eafbfa))
+* Refactored code to handle duplicate files when selected from multiple `input[type="file"]` elements. ([c965cae](https://github.com/CoCreate-app/CoCreate-file/commit/c965cae2a6f092b4b57e846d50859266366937e5))
+* update template_id to render-selector attribute. update filter attributes to filter selector-attributes ([897d910](https://github.com/CoCreate-app/CoCreate-file/commit/897d9104ef2134e9f05a94a720ca0acdbd84fc89))
+
 ## [1.3.11](https://github.com/CoCreate-app/CoCreate-file/compare/v1.3.10...v1.3.11) (2023-06-16)
 
 
