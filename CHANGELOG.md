@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.5.0...v1.5.1) (2023-08-17)
+
+
+### Bug Fixes
+
+* typo @cocreate/observer ([211cb9a](https://github.com/CoCreate-app/CoCreate-file/commit/211cb9a31a45c9b72f6f4ef6fc7471180477bb85))
+
 # [1.5.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.4.0...v1.5.0) (2023-08-17)
 
 
