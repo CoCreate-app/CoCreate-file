@@ -20,7 +20,7 @@
 // you must obtain a commercial license from CoCreate LLC.
 // For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
 
-import Observer from '@cocreate/Observer';
+import Observer from '@cocreate/observer';
 import Crud from '@cocreate/crud-client';
 import Elements from '@cocreate/elements';
 import Actions from '@cocreate/Actions';
