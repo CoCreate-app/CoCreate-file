@@ -23,7 +23,7 @@
 import Observer from '@cocreate/observer';
 import Crud from '@cocreate/crud-client';
 import Elements from '@cocreate/elements';
-import Actions from '@cocreate/Actions';
+import Actions from '@cocreate/actions';
 import render from '@cocreate/render';
 import { queryElements } from '@cocreate/utils';
 import '@cocreate/element-prototype';
