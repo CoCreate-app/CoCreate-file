@@ -77,16 +77,7 @@ const mimeTypes = {
     ".7z": "application/x-7z-compressed"
 }
 
-module.exports = async function file(CoCreateConfig) {
-
-    let configFile = path.resolve(process.cwd(), 'CoCreate.config.js');
-    if (fs.existsSync(configFile)) {
-        CoCreateConfig = require(configFile);
-    } else {
-        console.log('CoCreate.config.js could not be found.')
-        process.exit()
-    }
-
+module.exports = async function file(CoCreateConfig, configPath) {
     let { directories, sources } = CoCreateConfig;
     let config = await Config({
         organization_id: {
@@ -113,7 +104,7 @@ module.exports = async function file(CoCreateConfig) {
                 }
             }
         }
-    })
+    }, null, null, configPath)
 
     if (!config.organization_id || !config.host || !config.key && (!config.password || config.email)) {
         console.log('One or more required config params could not be found')
@@ -170,7 +161,15 @@ module.exports = async function file(CoCreateConfig) {
         let files = fs.readdirSync(entry);
 
         for (let file of files) {
-            if (exclude && exclude.includes(file)) continue
+            let skip = false
+            for (let i = 0; i < exclude.length; i++) {
+                if (file.includes(exclude)) {
+                    skip = true
+                    break;
+                }
+            }
+            if (skip) continue
+
 
             let isDirectory = fs.existsSync(`${entry}/${file}`) && fs.lstatSync(`${entry}/${file}`).isDirectory();
             let name = file
@@ -198,8 +197,6 @@ module.exports = async function file(CoCreateConfig) {
                 pathName = directoryName + '/' + name
             else
                 pathName = '/' + name
-
-            if (exclude && exclude.includes(pathName)) continue
 
             if (isDirectory)
                 mimeType = "text/directory"
@@ -377,6 +374,8 @@ module.exports = async function file(CoCreateConfig) {
 
     async function runStore(data) {
         try {
+            if (data.object.name === 'prism-chunk.js')
+                console.log('prism-chunk.js')
             let response;
             if (!data.object._id && !data.filter) {
                 response = await crud.send({
@@ -424,9 +423,8 @@ module.exports = async function file(CoCreateConfig) {
 
             delete newConfig.url
             delete newConfig.broadcast
-            const write_str = `module.exports = ${JSON.stringify(newConfig, null, 4)};`;
 
-            fs.writeFileSync(configFile, write_str);
+            fs.writeFileSync(configPath, `module.exports = ${JSON.stringify(newConfig, null, 4)};`);
         }
 
         console.log('upload complete!');
