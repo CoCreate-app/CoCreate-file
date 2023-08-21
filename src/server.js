@@ -78,7 +78,9 @@ const mimeTypes = {
 }
 
 module.exports = async function file(CoCreateConfig, configPath) {
-    let { directories, sources } = CoCreateConfig;
+    let directories = CoCreateConfig.directories
+    let sources = CoCreateConfig.sources
+
     let config = await Config({
         organization_id: {
             prompt: 'Enter your organization_id: '
