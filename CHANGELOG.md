@@ -1,3 +1,13 @@
+## [1.5.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.5.2...v1.5.3) (2023-08-21)
+
+
+### Bug Fixes
+
+* /dist/CoCreate.js updated to https://CoCreate.app/dist/CoCreate.js ([0903b42](https://github.com/CoCreate-app/CoCreate-file/commit/0903b4285c3e798b5631e6bd251d58ff3bf9e619))
+* removed handeling of resolving static configPath CoCreate.config.js ([53604bb](https://github.com/CoCreate-app/CoCreate-file/commit/53604bbdb25d8e89e53469d725ae90d90d1ab4d7))
+* replace cdn with /dist ([b305020](https://github.com/CoCreate-app/CoCreate-file/commit/b305020846b839ac147f26b19c68f881c7b0b41c))
+* update file uploader ([9fa12e8](https://github.com/CoCreate-app/CoCreate-file/commit/9fa12e8dd0c7a396778bb5aa7c71b745ef1945af))
+
 ## [1.5.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.5.1...v1.5.2) (2023-08-18)
 
 
