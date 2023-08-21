@@ -376,8 +376,6 @@ module.exports = async function file(CoCreateConfig, configPath) {
 
     async function runStore(data) {
         try {
-            if (data.object.name === 'prism-chunk.js')
-                console.log('prism-chunk.js')
             let response;
             if (!data.object._id && !data.filter) {
                 response = await crud.send({
