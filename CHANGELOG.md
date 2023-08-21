@@ -1,3 +1,10 @@
+## [1.6.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.6.2...v1.6.3) (2023-08-21)
+
+
+### Bug Fixes
+
+* remove unused console.log ([610fc0b](https://github.com/CoCreate-app/CoCreate-file/commit/610fc0b99c344a954b776a610c514c56ec034e1f))
+
 ## [1.6.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.6.1...v1.6.2) (2023-08-21)
 
 
