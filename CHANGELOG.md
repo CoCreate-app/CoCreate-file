@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.6.0...v1.6.1) (2023-08-21)
+
+
+### Bug Fixes
+
+* if directories or source is undefined ([daa2a3a](https://github.com/CoCreate-app/CoCreate-file/commit/daa2a3a86eaabf4838bb20e69e2d1413b04eebf4))
+
 # [1.6.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.5.3...v1.6.0) (2023-08-21)
 
 
