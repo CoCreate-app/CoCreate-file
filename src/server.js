@@ -77,9 +77,15 @@ const mimeTypes = {
     ".7z": "application/x-7z-compressed"
 }
 
-module.exports = async function file(CoCreateConfig, configPath) {
+module.exports = async function file(CoCreateConfig, configPath, match) {
     let directories = CoCreateConfig.directories
     let sources = CoCreateConfig.sources
+    let configDirectoryPath = path.dirname(configPath)
+
+    if (match && !Array.isArray(match))
+        match = [match]
+    else if (!match)
+        match = []
 
     let config = await Config({
         organization_id: {
@@ -143,7 +149,7 @@ module.exports = async function file(CoCreateConfig, configPath) {
 
     }
 
-    console.log('Uploading files...')
+    // console.log('Uploading files...')
 
     /**
      * Store files by config directories
@@ -153,14 +159,15 @@ module.exports = async function file(CoCreateConfig, configPath) {
     async function runDirectories() {
         for (const directory of directories) {
             const entry = directory.entry
-            const exclude = directory.exclude
+            const exclude = directory.exclude || []
             await runFiles(directory, entry, exclude)
         }
         return
     }
 
     async function runFiles(directory, entry, exclude, parentDirectory = '') {
-        let files = fs.readdirSync(entry);
+        const entryPath = path.resolve(configDirectoryPath, entry)
+        let files = fs.readdirSync(entryPath);
 
         for (let file of files) {
             let skip = false
@@ -172,8 +179,19 @@ module.exports = async function file(CoCreateConfig, configPath) {
             }
             if (skip) continue
 
+            for (let i = 0; i < match.length; i++) {
+                skip = true
+                const filePath = path.resolve(entryPath, file);
+                if (filePath.startsWith(match[i])) {
+                    skip = false
+                    console.log('Uploaded: ', filePath)
+                    break;
+                }
+            }
 
-            let isDirectory = fs.existsSync(`${entry}/${file}`) && fs.lstatSync(`${entry}/${file}`).isDirectory();
+            if (skip) continue
+
+            let isDirectory = fs.existsSync(`${entryPath}/${file}`) && fs.lstatSync(`${entryPath}/${file}`).isDirectory();
             let name = file
             let source = ''
             let directoryName = parentDirectory || '';
@@ -203,7 +221,7 @@ module.exports = async function file(CoCreateConfig, configPath) {
             if (isDirectory)
                 mimeType = "text/directory"
             else
-                source = getSource(`${entry}/${file}`, mimeType)
+                source = getSource(`${entryPath}/${file}`, mimeType)
 
             let values = {
                 '{{name}}': name,
@@ -304,6 +322,7 @@ module.exports = async function file(CoCreateConfig, configPath) {
             let source = { ...sources[i] };
             let keys = new Map()
             let response = {};
+            let isMatch = false
 
             try {
                 if (array) {
@@ -316,7 +335,8 @@ module.exports = async function file(CoCreateConfig, configPath) {
 
                             let variables = object[key].match(/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g);
                             if (variables) {
-                                keys.set(key, `${object[key]}`)
+                                let originalValue = object[key]
+                                keys.set(key, originalValue)
                                 let value = ""
                                 for (let variable of variables) {
                                     let entry = /{{\s*([\w\W]+)\s*}}/g.exec(variable);
@@ -324,6 +344,17 @@ module.exports = async function file(CoCreateConfig, configPath) {
                                     if (entry) {
                                         if (!fs.existsSync(entry))
                                             continue
+
+                                        if (!isMatch) {
+                                            const filePath = path.resolve(configDirectoryPath, entry);
+                                            for (let i = 0; i < match.length; i++) {
+                                                if (filePath.startsWith(match[i])) {
+                                                    console.log('Source saved', sources[i])
+                                                    isMatch = true
+                                                    break;
+                                                }
+                                            }
+                                        }
 
                                         let read_type = 'utf8'
                                         const fileExtension = path.extname(entry);
@@ -351,20 +382,20 @@ module.exports = async function file(CoCreateConfig, configPath) {
                             query: [{ key: 'path', value: object.path, operator: '$eq' }]
                         }
 
-                    response = await runStore(data);
+                    if (match.length && isMatch)
+                        response = await runStore(data);
                 }
             } catch (err) {
                 console.log(err)
                 process.exit()
             }
+
             if (response.object && response.object[0] && response.object[0]._id) {
-                for (const [key, value] of keys) {
-                    source.object[key] = value
-                }
                 source.object._id = response.object[0]._id
-            } else {
-                console.log('_id could not be found')
-                process.exit()
+            }
+
+            for (const [key, value] of keys) {
+                source.object[key] = value
             }
 
             updatedSources.push(source)
@@ -404,10 +435,10 @@ module.exports = async function file(CoCreateConfig, configPath) {
         if (directories)
             await runDirectories()
 
-        if (sources) {
+        if (sources && sources.length) {
             let sources = await runSources()
             let newConfig = { ...CoCreateConfig }
-            if (directories)
+            if (directories && directories.length)
                 newConfig.directories = directories
 
             newConfig.sources = sources
@@ -427,11 +458,13 @@ module.exports = async function file(CoCreateConfig, configPath) {
             fs.writeFileSync(configPath, `module.exports = ${JSON.stringify(newConfig, null, 4)};`);
         }
 
-        console.log('upload complete!');
+        if (!match.length) {
+            console.log('upload complete!');
 
-        setTimeout(function () {
-            process.exit()
-        }, 2000)
+            setTimeout(function () {
+                process.exit()
+            }, 2000)
+        }
     }
 
     run()
