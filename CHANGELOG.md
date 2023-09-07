@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.6.3...v1.7.0) (2023-09-07)
+
+
+### Features
+
+* support match param. An array of files to match with config. if match found upload or save source ([30e6d57](https://github.com/CoCreate-app/CoCreate-file/commit/30e6d57da184f9533a0b75e8acc3a09e68b48629))
+
 ## [1.6.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.6.2...v1.6.3) (2023-08-21)
 
 
