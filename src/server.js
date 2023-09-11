@@ -127,7 +127,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
         let request = {
             method: 'signIn',
             array: 'users',
-            filter: {
+            $filter: {
                 query: [
                     { key: 'email', value: config.email, operator: '$eq' },
                     { key: 'password', value: config.password, operator: '$eq' }
@@ -275,7 +275,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             }
 
             if (!newObject.object._id)
-                newObject.filter = {
+                newObject.$filter = {
                     query: [{ key: 'path', value: pathName, operator: '$eq' }]
                 }
 
@@ -378,7 +378,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
                     let data = { array, object }
                     if (!object._id && object.path)
-                        data.filter = {
+                        data.$filter = {
                             query: [{ key: 'path', value: object.path, operator: '$eq' }]
                         }
 
@@ -408,7 +408,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
     async function runStore(data) {
         try {
             let response;
-            if (!data.object._id && !data.filter) {
+            if (!data.object._id && !data.$filter) {
                 response = await crud.send({
                     method: 'create.object',
                     ...config,
