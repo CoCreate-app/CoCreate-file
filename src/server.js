@@ -121,7 +121,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
 
     crud.socket.create(config)
-    config.broadcast = false
+    config.broadcastSender = false
 
     if (config.email && config.password) {
         let request = {
@@ -276,7 +276,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
             if (!newObject.object._id)
                 newObject.$filter = {
-                    query: [{ key: 'path', value: pathName, operator: '$eq' }]
+                    query: [{ key: 'path', value: pathName, operator: '$or' }]
                 }
 
             response = await runStore(newObject);
@@ -379,7 +379,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                     let data = { array, object }
                     if (!object._id && object.path)
                         data.$filter = {
-                            query: [{ key: 'path', value: object.path, operator: '$eq' }]
+                            query: [{ key: 'path', value: object.path, operator: '$or' }]
                         }
 
                     if (match.length && isMatch)
