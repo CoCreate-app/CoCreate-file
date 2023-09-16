@@ -15,10 +15,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  ********************************************************************************/
 
-// Commercial Licensing Information:
-// For commercial use of this software without the copyleft provisions of the AGPLv3,
-// you must obtain a commercial license from CoCreate LLC.
-// For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
+/**
+ * Commercial Licensing Information:
+ * For commercial use of this software without the copyleft provisions of the AGPLv3,
+ * you must obtain a commercial license from CoCreate LLC.
+ * For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
+ */
 
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {

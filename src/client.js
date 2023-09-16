@@ -15,10 +15,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  ********************************************************************************/
 
-// Commercial Licensing Information:
-// For commercial use of this software without the copyleft provisions of the AGPLv3,
-// you must obtain a commercial license from CoCreate LLC.
-// For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
+/**
+ * Commercial Licensing Information:
+ * For commercial use of this software without the copyleft provisions of the AGPLv3,
+ * you must obtain a commercial license from CoCreate LLC.
+ * For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
+ */
 
 import Observer from '@cocreate/observer';
 import Crud from '@cocreate/crud-client';
@@ -406,18 +408,16 @@ async function upload(element, data) {
                     }
                 }
 
-                let action = 'update' + Data.type.charAt(0).toUpperCase() + Data.type.slice(1)
-                if (Crud[action]) {
-                    let response = await Crud[action](Data)({
-                        array,
-                        object,
-                        upsert: true
-                    });
+                Data.method = 'update.' + Data.type
+                let response = await Crud.send(Data)({
+                    array,
+                    object,
+                    upsert: true
+                });
 
-                    data.push(response)
-                    if (response && (!object || object !== response.object)) {
-                        Elements.setTypeValue(element, response);
-                    }
+                data.push(response)
+                if (response && (!object || object !== response.object)) {
+                    Elements.setTypeValue(element, response);
                 }
             }
         }
@@ -482,10 +482,8 @@ async function Import(element, data) {
 
         if (data.length) {
             for (let i = 0; i < data.length; i++) {
-                let action = 'create' + data[i].type.charAt(0).toUpperCase() + data[i].type.slice(1)
-                if (Crud[action]) {
-                    data[i] = await Crud[action](data[i])
-                }
+                data[i].method = 'create.' + data[i].type
+                data[i] = await Crud.send(data[i])
             }
         }
 
@@ -527,11 +525,10 @@ async function Export(element, data) {
 
             if (Data.type === 'key')
                 Data.type = 'object'
-            let action = 'read' + Data.type.charAt(0).toUpperCase() + Data.type.slice(1)
-            if (Crud[action]) {
-                Data = await Crud[action](Data)
-                data.push(...Data[Data.type])
-            }
+            Data.method = 'read.' + Data.type
+            Data = await Crud.send(Data)
+            data.push(...Data[Data.type])
+
         }
 
         let queriedElements = queryElements({ element: element[i], prefix: 'export' })
