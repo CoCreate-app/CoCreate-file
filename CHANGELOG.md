@@ -1,3 +1,12 @@
+## [1.7.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.7.0...v1.7.1) (2023-09-17)
+
+
+### Bug Fixes
+
+* renamed filter to $filter ([c8e8390](https://github.com/CoCreate-app/CoCreate-file/commit/c8e83901429d2c370b327449a9f7f0081b03e6fd))
+* update broadcast to broadcastSender false ([b93ca93](https://github.com/CoCreate-app/CoCreate-file/commit/b93ca93f6b1bff1b1052c841f63919f4156e551e))
+* update data.filter to data.$filter, supports data.object.$filter to ad  filters per object ([7ccb455](https://github.com/CoCreate-app/CoCreate-file/commit/7ccb45521a8af3c67587c756c905d7ed4a557a60))
+
 # [1.7.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.6.3...v1.7.0) (2023-09-07)
 
 
