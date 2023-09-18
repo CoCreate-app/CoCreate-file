@@ -117,8 +117,8 @@ async function fileEvent(event) {
                 files[i] = await readFile(files[i])
 
             files[i].directory = handle.directory || '/'
-            files[i].parentDirectory = handle.parentDirectory || ''
-            files[i].path = handle.path || '/' + handle.name
+            files[i].path = handle.path || '/'
+            files[i].pathname = handle.pathname || '/' + handle.name
             files[i]['content-type'] = files[i].type
             files[i].input = input
             files[i].id = await getFileId(files[i])
@@ -159,9 +159,9 @@ async function fileEvent(event) {
 async function getDirectoryHandles(handle, name) {
     let handles = [];
     for await (const entry of handle.values()) {
-        entry.directory = '/' + name
-        entry.parentDirectory = name.split("/").pop();
-        entry.path = '/' + name + '/' + entry.name
+        entry.directory = name
+        entry.path = '/' + name + '/'
+        entry.pathname = '/' + name + '/' + entry.name
         if (!entry.webkitRelativePath)
             entry.webkitRelativePath = name
 
@@ -631,8 +631,8 @@ async function create(directory, type, name, src = "") {
             }
 
             if (directory.input) {
-                file.directory = directory.path
-                file.parentDirectory = directory.name
+                file.directory = directory.name
+                file.pathname = directory.path + '/' + file.name
                 file.path = directory.path + '/' + file.name
                 file.input = directory.input
                 file.handle = handle

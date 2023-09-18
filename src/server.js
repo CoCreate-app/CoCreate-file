@@ -121,7 +121,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
 
     crud.socket.create(config)
-    config.broadcastSender = false
+    // config.broadcastBrowser = false
 
     if (config.email && config.password) {
         let request = {
@@ -195,14 +195,9 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             let name = file
             let source = ''
             let directoryName = parentDirectory || '';
-            let parentDirectoryOnly = parentDirectory || '';
-            let index = parentDirectoryOnly.lastIndexOf('/') + 1
-            if (parentDirectoryOnly && index) {
-                parentDirectoryOnly = parentDirectoryOnly.substring(index)
-            }
+
             const fileExtension = path.extname(file);
             let mimeType = mimeTypes[fileExtension]
-            let pathName = '';
 
             if (!directoryName && directory.object && directory.object.directory)
                 directoryName = directory.object.directory.replace('{{directory}}', '').trim()
@@ -211,12 +206,23 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
             if (exclude && exclude.includes(directoryName)) continue
 
+            let Path = '';
             if (directoryName.endsWith("/"))
-                pathName = directoryName + name
+                Path = directoryName
             else if (directoryName)
-                pathName = directoryName + '/' + name
+                Path = directoryName + '/'
             else
-                pathName = '/' + name
+                Path = '/'
+
+            let pathname = Path + name;
+
+            let folder = ''
+            if (Path === '/')
+                folder = Path
+            else {
+                let result = Path.split('/');
+                folder = result[result.length - 2];
+            }
 
             if (isDirectory)
                 mimeType = "text/directory"
@@ -226,9 +232,9 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             let values = {
                 '{{name}}': name,
                 '{{source}}': source,
-                '{{directory}}': directoryName,
-                '{{parentDirectory}}': parentDirectoryOnly,
-                '{{path}}': pathName,
+                '{{directory}}': folder,
+                '{{path}}': Path,
+                '{{pathname}}': pathname,
                 '{{content-type}}': mimeType
             }
 
@@ -239,10 +245,10 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                 object.src = "{{source}}"
             if (!object.directory)
                 object.directory = "/{{directory}}"
-            if (!object.parentDirectory)
-                object.parentDirectory = "{{parentDirectory}}"
             if (!object.path)
                 object.path = "{{path}}"
+            if (!object.pathname)
+                object.pathname = "{{pathname}}"
             if (!object["content-type"])
                 object["content-type"] = '{{content-type}}'
             if (!object.public && object.public != false && object.public != 'false')
@@ -259,7 +265,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                     if (variables) {
                         for (let variable of variables) {
                             if (variable == '{{directory}}') {
-                                if (parentDirectory)
+                                if (folder)
                                     newObject.object[key] = values[variable]
                                 else
                                     newObject.object[key] = newObject.object[key].replace(variable, '');
@@ -276,21 +282,21 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
             if (!newObject.object._id)
                 newObject.$filter = {
-                    query: [{ key: 'path', value: pathName, operator: '$or' }]
+                    query: [{ key: 'pathname', value: pathname, operator: '$or' }]
                 }
 
             response = await runStore(newObject);
             if (response.error)
                 errorLog.push(response.error)
 
-            if (isDirectory && pathName) {
+            if (isDirectory && pathname) {
                 let newEntry
                 if (entry.endsWith("/"))
                     newEntry = entry + name
                 else
                     newEntry = entry + '/' + name
 
-                await runFiles(directory, newEntry, exclude, pathName)
+                await runFiles(directory, newEntry, exclude, pathname)
             }
         }
         if (errorLog.length)
@@ -377,9 +383,9 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                         }
 
                     let data = { array, object }
-                    if (!object._id && object.path)
+                    if (!object._id && object.pathname)
                         data.$filter = {
-                            query: [{ key: 'path', value: object.path, operator: '$or' }]
+                            query: [{ key: 'pathname', value: object.pathname, operator: '$or' }]
                         }
 
                     if (match.length && isMatch)
