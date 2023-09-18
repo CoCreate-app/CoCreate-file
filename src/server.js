@@ -95,11 +95,11 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             prompt: 'Enter the host: '
         },
         prompt: {
-            prompt: 'Choose an authentication option: \n1.key\n2.Sign In\n',
+            prompt: 'Choose an authentication option: \n1.apikey\n2.Sign In\n',
             choices: {
                 '1': {
-                    key: {
-                        prompt: 'Enter your key: '
+                    apikey: {
+                        prompt: 'Enter your apikey: '
                     }
                 },
                 '2': {
@@ -114,14 +114,10 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
         }
     }, null, null, configPath)
 
-    if (!config.organization_id || !config.host || !config.key && (!config.password || config.email)) {
+    if (!config.organization_id || !config.apikey && (!config.password || config.email)) {
         console.log('One or more required config params could not be found')
         process.exit()
     }
-
-
-    crud.socket.create(config)
-    // config.broadcastBrowser = false
 
     if (config.email && config.password) {
         let request = {
@@ -132,10 +128,11 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                     { key: 'email', value: config.email, operator: '$eq' },
                     { key: 'password', value: config.password, operator: '$eq' }
                 ]
-            }
+            },
+            ...config
         }
 
-        let response = await crud.socket.send(request)
+        let response = await crud.send(request)
         let { success, token } = response;
 
         if (success) {
