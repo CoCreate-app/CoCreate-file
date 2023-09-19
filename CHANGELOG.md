@@ -1,3 +1,11 @@
+## [1.7.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.7.2...v1.7.3) (2023-09-19)
+
+
+### Bug Fixes
+
+* directory, path, pathname ([9fdad2d](https://github.com/CoCreate-app/CoCreate-file/commit/9fdad2d90d67b08b74d5027999fb1989ca67c853))
+* removed crud.socket.create() as it is handeled automatically duing socket.send ([ca012d0](https://github.com/CoCreate-app/CoCreate-file/commit/ca012d0789b6e66af472de688979b8f21b4f73e7))
+
 ## [1.7.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.7.1...v1.7.2) (2023-09-18)
 
 
