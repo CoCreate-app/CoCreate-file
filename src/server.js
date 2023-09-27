@@ -288,8 +288,8 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                 await runFiles(directory, newEntry, exclude, pathname, name)
             }
         }
-        if (errorLog.length)
-            console.log(...errorLog)
+        // if (errorLog.length)
+        //     console.log(...errorLog)
 
     }
 
