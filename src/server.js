@@ -269,7 +269,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
             if (!newObject.object._id)
                 newObject.$filter = {
-                    query: [{ key: 'pathname', value: pathname, operator: '$or' }]
+                    query: [{ key: 'pathname', value: pathname, operator: '$eq' }]
                 }
 
             response = await runStore(newObject);
@@ -296,9 +296,11 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 
     function getSource(path, mimeType) {
         let readType = 'utf8'
-        if (/^(image|audio|video)\/[-+.\w]+/.test(mimeType))
-            readType = 'base64'
-
+        if (mimeType === 'image/svg+xml') {
+            readType = 'utf8';
+        } else if (/^(image|audio|video)\/[-+.\w]+/.test(mimeType)) {
+            readType = 'base64';
+        }
         let binary = fs.readFileSync(path);
         let content = new Buffer.from(binary).toString(readType);
 
