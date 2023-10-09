@@ -1,3 +1,10 @@
+## [1.9.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.2...v1.9.3) (2023-10-09)
+
+
+### Bug Fixes
+
+* bump dependencies ([eeab116](https://github.com/CoCreate-app/CoCreate-file/commit/eeab11659aabecb339e762e261a902eb83ccbd4b))
+
 ## [1.9.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.1...v1.9.2) (2023-10-09)
 
 
