@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.0...v1.9.1) (2023-10-09)
+
+
+### Bug Fixes
+
+* svg bug ([a29f6f0](https://github.com/CoCreate-app/CoCreate-file/commit/a29f6f0ec0ac71d79f86f7472e6f5a7ee86c8fab))
+
 # [1.9.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.8.0...v1.9.0) (2023-09-19)
 
 
