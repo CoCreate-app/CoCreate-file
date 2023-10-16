@@ -203,7 +203,7 @@ async function getFiles(fileInputs) {
                 if (!file.src)
                     file = await readFile(file)
 
-                file = getCustomData({ ...file })
+                file = await getCustomData({ ...file })
                 files.push(file)
             }
         }
@@ -213,14 +213,14 @@ async function getFiles(fileInputs) {
 }
 
 // gets file custom data
-function getCustomData(file) {
+async function getCustomData(file) {
     let form = document.querySelector(`[file_id="${file.id}"]`);
     if (form) {
         let elements = form.querySelectorAll('[file]');
         for (let i = 0; i < elements.length; i++) {
             let name = elements[i].getAttribute('file')
             if (name) {
-                file[name] = elements[i].getValue()
+                file[name] = await elements[i].getValue()
             }
         }
     }
