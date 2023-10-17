@@ -136,10 +136,6 @@ async function fileEvent(event) {
 
             if (!input.renderValue)
                 input.renderValue(selected.values())
-            // render.render({
-            //     source: input,
-            //     data
-            // });
 
             const isImport = input.getAttribute('import')
             const isRealtime = input.getAttribute('realtime')
