@@ -176,20 +176,23 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             }
             if (skip) continue
 
+            let isDirectory = fs.existsSync(`${entryPath}/${file}`) && fs.lstatSync(`${entryPath}/${file}`).isDirectory();
+            let name = file
+            let source = ''
+
             for (let i = 0; i < match.length; i++) {
                 skip = true
                 const filePath = path.resolve(entryPath, file);
                 if (filePath.startsWith(match[i])) {
                     skip = false
                     break;
+                } else if (isDirectory && match[i].startsWith(filePath)) {
+                    skip = 'directory'
+                    break;
                 }
             }
 
-            if (skip) continue
-
-            let isDirectory = fs.existsSync(`${entryPath}/${file}`) && fs.lstatSync(`${entryPath}/${file}`).isDirectory();
-            let name = file
-            let source = ''
+            if (skip === true) continue
 
             const fileExtension = path.extname(file);
             let mimeType = mimeTypes[fileExtension]
@@ -267,16 +270,19 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                 }
             }
 
-            if (!newObject.object._id)
-                newObject.$filter = {
-                    query: [{ key: 'pathname', value: pathname, operator: '$eq' }]
-                }
 
-            response = await runStore(newObject);
-            console.log(`Uploaded: ${entryPath}/${file}`, `To: ${pathname}`)
+            if (skip !== 'directory') {
+                if (!newObject.object._id)
+                    newObject.$filter = {
+                        query: [{ key: 'pathname', value: pathname, operator: '$eq' }]
+                    }
 
-            if (response.error)
-                errorLog.push(response.error)
+                response = await runStore(newObject);
+                console.log(`Uploaded: ${entryPath}/${file}`, `To: ${pathname}`)
+
+                if (response.error)
+                    errorLog.push(response.error)
+            }
 
             if (isDirectory && pathname) {
                 let newEntry
