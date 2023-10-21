@@ -226,57 +226,38 @@ async function getCustomData(file) {
 
 // This function reads the file and returns its src
 function readFile(file) {
-    // Return a new promise that resolves the file object
     return new Promise((resolve) => {
-        // Split the file type into an array
         const fileType = file.type.split('/');
         let readAs;
 
-        // Check if the file type is a directory
         if (fileType[1] === 'directory') {
             return resolve(file)
-        }
-        // Check if the file type is a image
-        else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileType[1])
+        } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileType[1])
             || fileType[0] === 'image') {
             readAs = 'readAsDataURL';
-        }
-        // Check if the file type is a video
-        else if (['mp4', 'avi', 'mov', 'mpeg', 'flv'].includes(fileType[1])
+        } else if (['mp4', 'avi', 'mov', 'mpeg', 'flv'].includes(fileType[1])
             || fileType[0] === 'video') {
             readAs = 'readAsDataURL';
-        }
-        // Check if the file type is an audio
-        else if (['mp3', 'wav', 'wma', 'aac', 'ogg'].includes(fileType[1])
+        } if (['mp3', 'wav', 'wma', 'aac', 'ogg'].includes(fileType[1])
             || fileType[0] === 'audio') { // updated condition
             readAs = 'readAsDataURL';
-        }
-        // Check if the file type is a pdf
-        else if (fileType[1] === 'pdf') {
+        } else if (fileType[1] === 'pdf') {
             readAs = 'readAsDataURL';
-        }
-        // Check if the file type is a document
-        else if (['doc', 'msword', 'docx', 'xlsx', 'pptx'].includes(fileType[1])) {
+        } else if (['doc', 'msword', 'docx', 'xlsx', 'pptx'].includes(fileType[1])) {
             readAs = 'readAsBinaryString';
-        }
-        // Otherwise, assume the file type is text
-        else {
+        } else {
             readAs = 'readAsText';
         }
 
-        // Create a FileReader instance to read the file
         const reader = new FileReader();
-        // Read the file based on the file type
         reader[readAs](file);
-        // When the file is loaded, resolve the file object
+
         reader.onload = () => {
             file.src = reader.result;
-            // If the file type is a document, convert it to base64 encoding
             if (['doc', 'msword', 'docx', 'xlsx', 'pptx'].includes(fileType)) {
                 file.src = btoa(file.src);
             }
 
-            // Resolve the file object
             resolve(file);
         };
     });
