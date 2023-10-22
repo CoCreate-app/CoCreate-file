@@ -1,3 +1,11 @@
+## [1.9.8](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.7...v1.9.8) (2023-10-22)
+
+
+### Bug Fixes
+
+* base64 conditions ([55ef6e3](https://github.com/CoCreate-app/CoCreate-file/commit/55ef6e3b29ccc2b5b40669ffa16eb92802b6eb2c))
+* support watch upload of deeply nested files ([db8b460](https://github.com/CoCreate-app/CoCreate-file/commit/db8b4601aa92ed76ff10095d2505cffbda54a8ac))
+
 ## [1.9.7](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.6...v1.9.7) (2023-10-19)
 
 
