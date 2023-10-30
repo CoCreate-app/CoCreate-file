@@ -385,7 +385,7 @@ async function upload(element, data) {
                     }
                 }
 
-                Data.method = 'update.' + Data.type
+                Data.method = Data.type + '.update'
                 let response = await Crud.send(Data)({
                     array,
                     object,
@@ -459,7 +459,7 @@ async function Import(element, data) {
 
         if (data.length) {
             for (let i = 0; i < data.length; i++) {
-                data[i].method = 'create.' + data[i].type
+                data[i].method = data[i].type + '.create'
                 data[i] = await Crud.send(data[i])
             }
         }
@@ -502,7 +502,7 @@ async function Export(element, data) {
 
             if (Data.type === 'key')
                 Data.type = 'object'
-            Data.method = 'read.' + Data.type
+            Data.method = Data.type + '.read'
             Data = await Crud.send(Data)
             data.push(...Data[Data.type])
 

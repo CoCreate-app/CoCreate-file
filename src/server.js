@@ -413,13 +413,13 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             let response;
             if (!data.object._id && !data.$filter) {
                 response = await crud.send({
-                    method: 'create.object',
+                    method: 'object.create',
                     ...config,
                     ...data
                 })
             } else {
                 response = await crud.send({
-                    method: 'update.object',
+                    method: 'object.update',
                     ...config,
                     ...data,
                     upsert: true
