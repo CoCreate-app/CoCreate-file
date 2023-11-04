@@ -167,6 +167,8 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
         let files = fs.readdirSync(entryPath);
 
         for (let file of files) {
+            if (fs.lstatSync(`${entryPath}/${file}`).isSymbolicLink())
+                continue
             let skip = false
             for (let i = 0; i < exclude.length; i++) {
                 if (file.includes(exclude)) {
