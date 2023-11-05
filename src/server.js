@@ -63,6 +63,7 @@ const mimeTypes = {
     ".wav": "audio/wav",
     ".weba": "audio/webm",
     ".webm": "video/webm",
+    ".webmanifest": "application/manifest+json",
     ".webp": "image/webp",
     ".woff": "font/woff",
     ".woff2": "font/woff2",
