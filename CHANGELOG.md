@@ -1,3 +1,18 @@
+# [1.10.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.10...v1.10.0) (2023-11-09)
+
+
+### Bug Fixes
+
+* .ico content-type ([8f91239](https://github.com/CoCreate-app/CoCreate-file/commit/8f91239f3658d24363631edfe52d384709e432b4))
+* if symbolic link skip ([fb0f4d7](https://github.com/CoCreate-app/CoCreate-file/commit/fb0f4d7d60a1d24d1776199c7a45d701426d3f60))
+* meta name typo ([22e2888](https://github.com/CoCreate-app/CoCreate-file/commit/22e2888befd95f84ec214014de94872913092e6e))
+* update host ([f5ec5e0](https://github.com/CoCreate-app/CoCreate-file/commit/f5ec5e0c84b84942749c400bfc4e366ef44a1ea9))
+
+
+### Features
+
+* support webmanifest file type ([aca211d](https://github.com/CoCreate-app/CoCreate-file/commit/aca211d6c4fa830a1934ae68c98527f25f75baf6))
+
 ## [1.9.10](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.9...v1.9.10) (2023-11-03)
 
 
