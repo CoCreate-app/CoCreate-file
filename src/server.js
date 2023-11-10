@@ -1,6 +1,8 @@
 const crud = require('@cocreate/crud-client')
 const Config = require('@cocreate/config')
 const fs = require('fs');
+const realpathAsync = fs.promises.realpath;
+
 const path = require('path');
 const mimeTypes = {
     ".aac": "audio/aac",
@@ -168,8 +170,6 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
         let files = fs.readdirSync(entryPath);
 
         for (let file of files) {
-            if (fs.lstatSync(`${entryPath}/${file}`).isSymbolicLink())
-                continue
             let skip = false
             for (let i = 0; i < exclude.length; i++) {
                 if (file.includes(exclude)) {
@@ -179,7 +179,14 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             }
             if (skip) continue
 
-            let isDirectory = fs.existsSync(`${entryPath}/${file}`) && fs.lstatSync(`${entryPath}/${file}`).isDirectory();
+            let isDirectory
+            let isSymlink = fs.lstatSync(`${entryPath}/${file}`).isSymbolicLink()
+            if (isSymlink) {
+                let symlinkPath = await realpathAsync(`${entryPath}/${file}`)
+                isDirectory = fs.existsSync(symlinkPath) && fs.lstatSync(symlinkPath).isDirectory()
+            } else
+                isDirectory = fs.existsSync(`${entryPath}/${file}`) && fs.lstatSync(`${entryPath}/${file}`).isDirectory()
+
             let name = file
             let source = ''
 
@@ -229,7 +236,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             if (isDirectory)
                 mimeType = "text/directory"
             else
-                source = getSource(`${entryPath}/${file}`, mimeType)
+                source = await getSource(`${entryPath}/${file}`, mimeType, isSymlink)
 
             let values = {
                 '{{name}}': name || '',
@@ -303,13 +310,17 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
     }
 
 
-    function getSource(path, mimeType) {
+    async function getSource(path, mimeType, isSymlink) {
         let readType = 'utf8'
         if (mimeType === 'image/svg+xml') {
             readType = 'utf8';
         } else if (/^(image|audio|video)\/[-+.\w]+/.test(mimeType)) {
             readType = 'base64';
         }
+
+        if (isSymlink)
+            path = await realpathAsync(path)
+
         let binary = fs.readFileSync(path);
         let content = new Buffer.from(binary).toString(readType);
 
