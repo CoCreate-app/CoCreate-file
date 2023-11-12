@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.10.0...v1.11.0) (2023-11-12)
+
+
+### Bug Fixes
+
+* bump dependencies for latest features ([c268d0f](https://github.com/CoCreate-app/CoCreate-file/commit/c268d0fa6ddf28a8149d7ab59f28cbd491eea9a1))
+
+
+### Features
+
+* symlinks will find realpath to upload ([0984755](https://github.com/CoCreate-app/CoCreate-file/commit/0984755e91cfcf5e819130502d5541f97d8bb9b1))
+
 # [1.10.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.9.10...v1.10.0) (2023-11-09)
 
 
