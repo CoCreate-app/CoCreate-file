@@ -33,12 +33,18 @@ import '@cocreate/element-prototype';
 const inputs = new Map();
 const Files = new Map();
 
+/**
+ * Initializes file elements. If no parameter is provided, it queries and initializes all elements with type="file".
+ * It can also initialize a single element or an array of elements. Specifically focuses on elements of type 'file'.
+ * 
+ * @param {(Element|Element[]|null)} [elements] - Optional. An element, an array of elements, or null. 
+ *      - If null or omitted, the function queries and initializes all elements in the document with type="file".
+ *      - If a single element is provided, it initializes that element (assuming it is of type "file").
+ *      - If an array of elements is provided, each element in the array is initialized.
+ */
 function init(elements) {
-    // Returns an array of elements.
     if (!elements)
         elements = document.querySelectorAll('[type="file"]')
-
-    // If elements is an not array of elements returns an array of elements.
     else if (!Array.isArray(elements))
         elements = [elements]
     for (let i = 0; i < elements.length; i++) {
