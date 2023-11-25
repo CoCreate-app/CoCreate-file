@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.13.0...v1.14.0) (2023-11-25)
+
+
+### Bug Fixes
+
+* update licensing details ([8c40ebb](https://github.com/CoCreate-app/CoCreate-file/commit/8c40ebb79f9c81d27574a43130daec77c3f778ba))
+
+
+### Features
+
+* upgrade dependencies for latest features and fixes ([d30415b](https://github.com/CoCreate-app/CoCreate-file/commit/d30415b76459f3d0fb80085a2560e667d3e66a8d))
+
 # [1.13.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.12.0...v1.13.0) (2023-11-25)
 
 
