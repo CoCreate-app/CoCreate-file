@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.14.0...v1.14.1) (2023-12-28)
+
+
+### Bug Fixes
+
+* typo ([b01a79a](https://github.com/CoCreate-app/CoCreate-file/commit/b01a79aa91dcdcca3d17fda1afa248672c24ad14))
+
 # [1.14.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.13.0...v1.14.0) (2023-11-25)
 
 
