@@ -1,4 +1,4 @@
-# CoCreate-action
+# CoCreate-file
 
 This is a configurable headless file uploader that utilizes HTML5 attributes for easy customization. With this module, users can easily upload files to a server without requiring a formal UI or browser interaction. By leveraging HTML5 attributes, it's easy to customize and fine-tune the behavior of the uploader to fit specific needs. This uploader is perfect for developers looking to implement file uploads in a headless environment. Take it for a spin in our [playground!](https://cocreate.app/docs/file)
 
