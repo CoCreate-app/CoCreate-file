@@ -4,7 +4,6 @@
   "description": "A headless file uploader that uses HTML5 attributes for customization. Allows easy upload of files to server.",
   "keywords": [
     "file",
-    "chain-functions",
     "cocreate",
     "low-code-framework",
     "no-code-framework",
