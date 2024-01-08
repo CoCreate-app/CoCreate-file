@@ -267,6 +267,14 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                 array: directory.array || 'files',
                 object
             }
+
+            if (directory.storage)
+                newObject.storage = directory.storage
+            if (directory.database)
+                newObject.database = directory.database
+            if (directory.array)
+                newObject.array = directory.array || 'files'
+
             for (const key of Object.keys(directory.object)) {
                 if (typeof directory.object[key] == 'string') {
 
