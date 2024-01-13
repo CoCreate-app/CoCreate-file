@@ -127,10 +127,10 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             method: 'signIn',
             array: 'users',
             $filter: {
-                query: [
-                    { key: 'email', value: config.email, operator: '$eq' },
-                    { key: 'password', value: config.password, operator: '$eq' }
-                ]
+                query: {
+                    email: config.email,
+                    password: config.password
+                }
             },
             ...config
         }
@@ -292,7 +292,9 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
             if (skip !== 'directory') {
                 if (!newObject.object._id)
                     newObject.$filter = {
-                        query: [{ key: 'pathname', value: pathname, operator: '$eq' }]
+                        query: {
+                            pathname
+                        }
                     }
 
                 response = await runStore(newObject);
@@ -404,7 +406,9 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
                     let data = { array, object }
                     if (!object._id && object.pathname)
                         data.$filter = {
-                            query: [{ key: 'pathname', value: object.pathname, operator: '$or' }]
+                            query: {
+                                $or: [{ pathname: object.pathname }]
+                            }
                         }
 
                     if (match.length && isMatch)
