@@ -374,7 +374,7 @@ async function upload(element, data) {
             let Data = Elements.getObject(input);
             if (Data.type) {
                 if (input.getFilter)
-                    Data.$filter = input.getFilter()
+                    Data.$filter = await input.getFilter()
 
                 let files = await getFiles(input)
 
@@ -454,7 +454,7 @@ async function Import(element, data) {
             let Data = Elements.getObject(element[i]);
             if (Data.type) {
                 if (element[i].getFilter)
-                    Data.$filter = element[i].getFilter()
+                    Data.$filter = await element[i].getFilter()
 
                 if (Data.type === 'key')
                     Data.type = 'object'
@@ -504,7 +504,7 @@ async function Export(element, data) {
         let Data = Elements.getObject(element[i]);
         if (Data.type) {
             if (element[i].getFilter)
-                Data.$filter = element[i].getFilter()
+                Data.$filter = await element[i].getFilter()
 
             if (Data.type === 'key')
                 Data.type = 'object'
