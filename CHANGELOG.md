@@ -1,3 +1,12 @@
+## [1.14.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.14.1...v1.14.2) (2024-01-17)
+
+
+### Bug Fixes
+
+* await getFilter() ([339a343](https://github.com/CoCreate-app/CoCreate-file/commit/339a34379f51982b1447e5fffb81f4001c40b223))
+* support defining storage and database in config ([bc992c1](https://github.com/CoCreate-app/CoCreate-file/commit/bc992c15dd586bdc3de580557617fc3eddb4a176))
+* update to support new query system ([d3d43dc](https://github.com/CoCreate-app/CoCreate-file/commit/d3d43dc0585e6656167a8072fa3d2d848aca3b14))
+
 ## [1.14.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.14.0...v1.14.1) (2023-12-28)
 
 
