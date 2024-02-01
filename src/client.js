@@ -140,7 +140,7 @@ async function fileEvent(event) {
             inputs.set(input, selected);
             console.log("Files selected:", selected);
 
-            if (!input.renderValue)
+            if (input.renderValue)
                 input.renderValue(selected.values())
 
             const isImport = input.getAttribute('import')
