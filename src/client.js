@@ -48,32 +48,54 @@ function init(elements) {
     else if (!Array.isArray(elements))
         elements = [elements]
     for (let i = 0; i < elements.length; i++) {
-        if (elements[i].tagName !== 'INPUT') {
-            // TODO: create input and append to div if input dos not exist
-            // check if input exist
-            let input = document.createElement("input");
-            input.type = "file";
-            input.setAttribute('hidden', '')
-            elements[i].appendChild(input);
+        let nestedInput, isInput = elements[i].tagName === 'INPUT'
+        if (!isInput) {
+            nestedInput = elements[i].querySelector('input[type="file"]')
         }
 
         elements[i].getValue = async () => await getFiles([elements[i]])
         elements[i].getFiles = async () => await getFiles([elements[i]])
-
-        // elements[i].setValue = (value) => pickr.setColor(value);
+        elements[i].setValue = (files) => setFiles(elements[i], files);
 
         if (elements[i].hasAttribute('directory')) {
-            if (window.showDirectoryPicker)
+            if (!isInput && window.showDirectoryPicker)
                 elements[i].addEventListener("click", fileEvent);
             else if ('webkitdirectory' in elements[i]) {
                 elements[i].webkitdirectory = true
-                elements[i].addEventListener("change", fileEvent)
+                if (!isInput && !nestedInput) {
+                    nestedInput = document.createElement("input");
+                    nestedInput.type = "file";
+                    nestedInput.setAttribute('hidden', '')
+                    elements[i].appendChild(nestedInput);
+                }
+
+                if (nestedInput) {
+                    elements[i].addEventListener("click", function () {
+                        nestedInput.click()
+                    });
+                    nestedInput.addEventListener("change", fileEvent);
+                } else
+                    elements[i].addEventListener("change", fileEvent);
             } else
                 console.error("Directory selection not supported in this browser.");
-        } else if (window.showOpenFilePicker)
+        } else if (!isInput && window.showOpenFilePicker)
             elements[i].addEventListener("click", fileEvent);
-        else
-            elements[i].addEventListener("change", fileEvent);
+        else {
+            if (!isInput && !nestedInput) {
+                nestedInput = document.createElement("input");
+                nestedInput.type = "file";
+                nestedInput.setAttribute('hidden', '')
+                elements[i].appendChild(nestedInput);
+            }
+
+            if (nestedInput) {
+                elements[i].addEventListener("click", function () {
+                    nestedInput.click()
+                });
+                nestedInput.addEventListener("change", fileEvent);
+            } else
+                elements[i].addEventListener("change", fileEvent);
+        }
     }
 }
 
@@ -82,7 +104,7 @@ async function fileEvent(event) {
         const input = event.target;
         let selected = inputs.get(input) || new Map()
         let files = input.files;
-        if (!files.length) {
+        if (!files || !files.length) {
             event.preventDefault()
             const multiple = input.multiple
             if (input.hasAttribute('directory')) {
@@ -120,7 +142,7 @@ async function fileEvent(event) {
             }
 
             if (!files[i].src)
-                files[i] = await readFile(files[i])
+                await readFile(files[i])
 
             files[i].directory = handle.directory || '/'
             files[i].path = handle.path || '/'
@@ -148,7 +170,6 @@ async function fileEvent(event) {
             if (isRealtime !== 'false' && (isImport || isImport == "")) {
                 Import(input)
             }
-
         }
     } catch (error) {
         if (error.name !== 'AbortError') {
@@ -203,7 +224,7 @@ async function getFiles(fileInputs) {
         if (selected) {
             for (let file of selected.values()) {
                 if (!file.src)
-                    file = await readFile(file)
+                    await readFile(file)
 
                 file = await getCustomData({ ...file })
                 files.push(file)
@@ -214,7 +235,6 @@ async function getFiles(fileInputs) {
     return files
 }
 
-// gets file custom data
 async function getCustomData(file) {
     let form = document.querySelector(`[file_id="${file.id}"]`);
     if (form) {
@@ -226,9 +246,11 @@ async function getCustomData(file) {
             }
         }
     }
+
+    delete file.input;
+
     return file;
 }
-
 
 // This function reads the file and returns its src
 function readFile(file) {
@@ -244,7 +266,7 @@ function readFile(file) {
         } else if (['mp4', 'avi', 'mov', 'mpeg', 'flv'].includes(fileType[1])
             || fileType[0] === 'video') {
             readAs = 'readAsDataURL';
-        } if (['mp3', 'wav', 'wma', 'aac', 'ogg'].includes(fileType[1])
+        } else if (['mp3', 'wav', 'wma', 'aac', 'ogg'].includes(fileType[1])
             || fileType[0] === 'audio') { // updated condition
             readAs = 'readAsDataURL';
         } else if (fileType[1] === 'pdf') {
@@ -267,6 +289,19 @@ function readFile(file) {
             resolve(file);
         };
     });
+}
+
+function setFiles(element, files) {
+    if (!Array.isArray(files))
+        files = [files]
+
+    let selected = inputs.get(element) || new Map()
+    for (let i = 0; i < files.length; i++) {
+        files[i].input = element
+        selected.set(files[i].id, files[i])
+        Files.set(files[i].id, files[i])
+    }
+    inputs.set(element, selected);
 }
 
 async function save(element, action, data) {
