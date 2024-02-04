@@ -26,7 +26,7 @@ import Observer from '@cocreate/observer';
 import Crud from '@cocreate/crud-client';
 import Elements from '@cocreate/elements';
 import Actions from '@cocreate/actions';
-import render from '@cocreate/render';
+import { render } from '@cocreate/render';
 import { queryElements } from '@cocreate/utils';
 import '@cocreate/element-prototype';
 
@@ -42,7 +42,7 @@ const Files = new Map();
  *      - If a single element is provided, it initializes that element (assuming it is of type "file").
  *      - If an array of elements is provided, each element in the array is initialized.
  */
-function init(elements) {
+async function init(elements) {
     if (!elements)
         elements = document.querySelectorAll('[type="file"]')
     else if (!Array.isArray(elements))
@@ -56,6 +56,13 @@ function init(elements) {
         elements[i].getValue = async () => await getFiles([elements[i]])
         elements[i].getFiles = async () => await getFiles([elements[i]])
         elements[i].setValue = (files) => setFiles(elements[i], files);
+        elements[i].renderValue = (files) => setFiles(elements[i], files);
+
+        // if (elements[i].renderValue) {
+        //     let data = await elements[i].getValue()
+        //     if (data)
+        //         elements[i].setValue(data)
+        // }
 
         if (elements[i].hasAttribute('directory')) {
             if (!isInput && window.showDirectoryPicker)
@@ -163,7 +170,7 @@ async function fileEvent(event) {
             console.log("Files selected:", selected);
 
             if (input.renderValue)
-                input.renderValue(selected.values())
+                input.renderValue(Array.from(selected.values()))
 
             const isImport = input.getAttribute('import')
             const isRealtime = input.getAttribute('realtime')
@@ -222,7 +229,7 @@ async function getFiles(fileInputs) {
     for (let input of fileInputs) {
         const selected = inputs.get(input)
         if (selected) {
-            for (let file of selected.values()) {
+            for (let file of Array.from(selected.values())) {
                 if (!file.src)
                     await readFile(file)
 
@@ -292,8 +299,11 @@ function readFile(file) {
 }
 
 function setFiles(element, files) {
+    if (!files) return
     if (!Array.isArray(files))
         files = [files]
+    else if (!files.length)
+        return
 
     let selected = inputs.get(element) || new Map()
     for (let i = 0; i < files.length; i++) {
@@ -302,6 +312,8 @@ function setFiles(element, files) {
         Files.set(files[i].id, files[i])
     }
     inputs.set(element, selected);
+    if (element.renderValue)
+        render({ source: element, data: Array.from(selected.values()) })
 }
 
 async function save(element, action, data) {

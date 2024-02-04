@@ -32,10 +32,26 @@
             <button actions="upload">upload</button>
         </form>
 
+        <div
+            type="file"
+            array="test"
+            object=""
+            key="image"
+            accept="image/*"
+            placeholder="Upload Image or Video Thumbnail"
+            class="floating-label min-height:40px active"
+            render-selector="[template]"
+            active>
+            <div template>
+                <img src="{{image.src}}" alt="image" width="100%" />
+            </div>
+        </div>
+
         <form>
             <input
                 type="file"
                 directory
+                realtime="false"
                 render-selector="document; [template]" />
 
             <button actions="saveLocally">saveLocally</button>
