@@ -1,3 +1,17 @@
+# [1.15.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.14.2...v1.15.0) (2024-02-05)
+
+
+### Bug Fixes
+
+* Removed https://cdn.cocreate.app/latest/CoCreate.min.css ([e0ae28d](https://github.com/CoCreate-app/CoCreate-file/commit/e0ae28de52a02ee58947093f6dad3dd9dfee93e8))
+* renderValue ([4e3308a](https://github.com/CoCreate-app/CoCreate-file/commit/4e3308a157ee2257bc1eb603ddc1484b5579cac8))
+* typo renderValue condition ([65ba50f](https://github.com/CoCreate-app/CoCreate-file/commit/65ba50fe6a84e02bad033f423d39a0ab22fdb766))
+
+
+### Features
+
+* setValue() ([44d4012](https://github.com/CoCreate-app/CoCreate-file/commit/44d40127823d7ccdf8286943b435eeff939e6e2f))
+
 ## [1.14.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.14.1...v1.14.2) (2024-01-17)
 
 
