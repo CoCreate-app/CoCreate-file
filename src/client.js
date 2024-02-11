@@ -151,6 +151,9 @@ async function fileEvent(event) {
             if (!files[i].src)
                 await readFile(files[i])
 
+            if (!files[i].size)
+                files[i].size = handle.size
+
             files[i].directory = handle.directory || '/'
             files[i].path = handle.path || '/'
             files[i].pathname = handle.pathname || '/' + handle.name
@@ -232,9 +235,11 @@ async function getFiles(fileInputs) {
             for (let file of Array.from(selected.values())) {
                 if (!file.src)
                     await readFile(file)
+                let fileObject = { ...file }
+                fileObject.size = file.size
+                await getCustomData(fileObject)
 
-                file = await getCustomData({ ...file })
-                files.push(file)
+                files.push(fileObject)
             }
         }
     }
@@ -267,14 +272,11 @@ function readFile(file) {
 
         if (fileType[1] === 'directory') {
             return resolve(file)
-        } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileType[1])
-            || fileType[0] === 'image') {
+        } else if (fileType[0] === 'image') {
             readAs = 'readAsDataURL';
-        } else if (['mp4', 'avi', 'mov', 'mpeg', 'flv'].includes(fileType[1])
-            || fileType[0] === 'video') {
+        } else if (fileType[0] === 'video') {
             readAs = 'readAsDataURL';
-        } else if (['mp3', 'wav', 'wma', 'aac', 'ogg'].includes(fileType[1])
-            || fileType[0] === 'audio') { // updated condition
+        } else if (fileType[0] === 'audio') {
             readAs = 'readAsDataURL';
         } else if (fileType[1] === 'pdf') {
             readAs = 'readAsDataURL';
@@ -429,13 +431,11 @@ async function upload(element, data) {
                 if (Data.type === 'key')
                     Data.type = 'object'
 
-                if (Data.type === 'object') {
-                    let object = input.getAttribute('object')
-                    if (key) {
-                        Data[Data.type] = { _id: object, [key]: files }
-                    } else {
-                        Data[Data.type] = files
-                    }
+                let object = input.getAttribute('object')
+                if (key) {
+                    Data[Data.type] = { _id: object, [key]: files }
+                } else {
+                    Data[Data.type] = files
                 }
 
                 Data.method = Data.type + '.update'
