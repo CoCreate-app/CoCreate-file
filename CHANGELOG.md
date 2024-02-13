@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.15.0...v1.15.1) (2024-02-13)
+
+
+### Bug Fixes
+
+* add file.size and add missing object param ([32f8508](https://github.com/CoCreate-app/CoCreate-file/commit/32f85080079dcb91fee2bb294b72d16d769b3440))
+
 # [1.15.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.14.2...v1.15.0) (2024-02-05)
 
 
