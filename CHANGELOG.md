@@ -1,3 +1,10 @@
+## [1.15.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.15.1...v1.15.2) (2024-02-14)
+
+
+### Bug Fixes
+
+* realtime defaults to false ([c6fb16c](https://github.com/CoCreate-app/CoCreate-file/commit/c6fb16c6f634c9a0eac244884913941963e5807b))
+
 ## [1.15.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.15.0...v1.15.1) (2024-02-13)
 
 
