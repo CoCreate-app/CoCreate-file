@@ -177,8 +177,10 @@ async function fileEvent(event) {
 
             const isImport = input.getAttribute('import')
             const isRealtime = input.getAttribute('realtime')
-            if (isRealtime !== 'false' && (isImport || isImport == "")) {
-                Import(input)
+            if (isRealtime && isRealtime !== 'false') {
+                if (isImport || isImport == "") {
+                    Import(input)
+                }
             }
         }
     } catch (error) {
