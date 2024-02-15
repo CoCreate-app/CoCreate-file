@@ -180,7 +180,8 @@ async function fileEvent(event) {
             if (isRealtime && isRealtime !== 'false') {
                 if (isImport || isImport == "") {
                     Import(input)
-                }
+                } else if (input.save)
+                    input.save()
             }
         }
     } catch (error) {
