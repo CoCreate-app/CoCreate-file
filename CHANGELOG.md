@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.15.2...v1.16.0) (2024-02-16)
+
+
+### Features
+
+* if realtime save on file selection ([de3c32c](https://github.com/CoCreate-app/CoCreate-file/commit/de3c32cdf3a1a1c18424ef0e8554fab40a85411d))
+
 ## [1.15.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.15.1...v1.15.2) (2024-02-14)
 
 
