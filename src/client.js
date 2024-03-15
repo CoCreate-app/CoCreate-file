@@ -424,34 +424,79 @@ async function upload(element, data) {
 
         for (let input of inputs) {
             let Data = Elements.getObject(input);
-            if (Data.type) {
-                if (input.getFilter)
-                    Data.$filter = await input.getFilter()
+            let key = getAttribute('key')
+            if (Data.type === 'key')
+                Data.type = 'object'
 
-                let files = await getFiles(input)
+            Data.method = Data.type + '.update'
+            if (Data.array)
+                Data.array = 'files'
 
-                let key = getAttribute('key')
-                if (Data.type === 'key')
-                    Data.type = 'object'
+            let path = input.getAttribute('path')
+            let directory = '/'
 
-                let object = input.getAttribute('object')
-                if (key) {
-                    Data[Data.type] = { _id: object, [key]: files }
-                } else {
-                    Data[Data.type] = files
+            if (path) {
+                directory = path.split('/');
+                directory = directory[directory.length - 1];
+                if (!path.endswith('/'))
+                    path += '/'
+            } else
+                path = directory = '/'
+
+            if (input.getFilter) {
+                Data.$filter = await input.getFilter()
+                if (!Data.$filter.query)
+                    Data.$filter.query = {}
+            } else
+                Data.$filter = {
+                    query: {}
                 }
 
-                Data.method = Data.type + '.update'
-                let response = await Crud.send(Data)({
-                    array,
-                    object,
-                    upsert: true
-                });
 
-                data.push(response)
-                if (response && (!object || object !== response.object)) {
-                    Elements.setTypeValue(element, response);
+            let files = await getFiles(input)
+            let segmentSize = 10 * 1024 * 1024
+            for (let i = 0; i < files.length; i++) {
+                files[i].path = path
+                files[i].pathname = path + '/' + files[i].name
+                files[i].directory = directory
+
+
+                if (files[i].size > segmentSize) {
+                    let { streamConfig, segments } = await processFile(files[i], null, segmentSize);
+                    files[i].src = streamConfig
+                    for (let j = 0; j < segments.length; j++) {
+                        segments[j].path = path
+                        segments[j].pathname = path + '/' + segments[j].name
+                        segments[j].directory = directory
+
+                        Data.$filter.query.pathname = segments[j].pathname
+                        Crud.send({
+                            ...Data,
+                            object: segments[j],
+                            upsert: true
+                        });
+                    }
+
                 }
+            }
+
+            let object = input.getAttribute('object')
+            if (key) {
+                Data[Data.type] = { _id: object, [key]: files }
+            } else {
+                Data[Data.type] = files
+            }
+
+            // Data.$filter.query.pathname = files[i].pathname
+
+            let response = await Crud.send({
+                ...Data,
+                upsert: true
+            });
+
+            data.push(response)
+            if (response && (!object || object !== response.object)) {
+                Elements.setTypeValue(element, response);
             }
         }
 
