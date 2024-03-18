@@ -1,13 +1,20 @@
 # CoCreate-file
 
-This is a configurable headless file uploader that utilizes HTML5 attributes for easy customization. With this module, users can easily upload files to a server without requiring a formal UI or browser interaction. By leveraging HTML5 attributes, it's easy to customize and fine-tune the behavior of the uploader to fit specific needs. This uploader is perfect for developers looking to implement file uploads in a headless environment. Take it for a spin in our [playground!](https://cocreate.app/docs/file)
+CoCreate-file is an advanced, configurable headless file uploader designed for comprehensive file management capabilities without a traditional user interface. Accessible via a JavaScript API and HTML5 attributes, it offers unparalleled flexibility in handling file operations on both local and server environments. Take it for a spin in our [playground!](https://cocreate.app/docs/file)
 
 ![minified](https://img.badgesize.io/https://cdn.cocreate.app/file/latest/CoCreate-file.min.js?style=flat-square&label=minified&color=orange)
 ![gzip](https://img.badgesize.io/https://cdn.cocreate.app/file/latest/CoCreate-file.min.js?compression=gzip&style=flat-square&label=gzip&color=yellow)
 ![brotli](https://img.badgesize.io/https://cdn.cocreate.app/file/latest/CoCreate-file.min.js?compression=brotli&style=flat-square&label=brotli)
-![GitHub latest release](https://img.shields.io/github/v/release/CoCreate-app/CoCreate-action?style=flat-square)
-![License](https://img.shields.io/github/license/CoCreate-app/CoCreate-action?style=flat-square)
+![GitHub latest release](https://img.shields.io/github/v/release/CoCreate-app/CoCreate-file?style=flat-square)
+![License](https://img.shields.io/github/license/CoCreate-app/CoCreate-file?style=flat-square)
 ![Hiring](https://img.shields.io/static/v1?style=flat-square&label=&message=Hiring&color=blueviolet)
+
+## Key Features
+
+-   **JavaScript API & HTML5 Customization**: Easily manage file uploads and operations through a powerful JavaScript API or by utilizing HTML5 attributes for easy integration and customization.
+-   **Local & Server File Operations**: Supports reading, writing, and uploading files both locally and to the server, catering to a wide range of application needs.
+-   **Graceful Fallbacks**: Implements graceful fallbacks to the standard HTML5 file input API, ensuring compatibility and functionality across different browsers and environments.
+-   **Headless File Management**: Designed for use in headless applications or scenarios where a UI is not required or desired, providing a clean, efficient backend solution for file management.
 
 ![CoCreate-file](https://cdn.cocreate.app/docs/CoCreate-file.gif)
 
