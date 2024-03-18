@@ -1,6 +1,6 @@
 {
   "name": "@cocreate/file",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "description": "A versatile, configurable headless file uploader supporting both local and server file operations. Accessible via a JavaScript API and HTML5 attributes, it offers seamless file reading, writing, and uploading capabilities with graceful fallbacks to the standard HTML5 file input API. Ideal for developers requiring robust file management in headless or UI-less environments.",
   "keywords": [
     "file uploader",

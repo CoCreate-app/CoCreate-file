@@ -1,3 +1,15 @@
+# [1.17.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.16.0...v1.17.0) (2024-03-18)
+
+
+### Bug Fixes
+
+* descriptions ([fe2cffc](https://github.com/CoCreate-app/CoCreate-file/commit/fe2cffc731ba9ffecbe6c5768ae43e242d9dea92))
+
+
+### Features
+
+* handle mediaSegmentation, define path ([4c8e478](https://github.com/CoCreate-app/CoCreate-file/commit/4c8e478bf7ff6a382c18bfbe7af60886af9e0d9e))
+
 # [1.16.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.15.2...v1.16.0) (2024-02-16)
 
 
