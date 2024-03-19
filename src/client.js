@@ -251,6 +251,7 @@ async function getFiles(fileInputs) {
 }
 
 async function getCustomData(file) {
+    // TODO: Consider potential replacment of file_id, perhaps supporting selector  
     let form = document.querySelector(`[file_id="${file.id}"]`);
     if (form) {
         let elements = form.querySelectorAll('[file]');
@@ -321,6 +322,7 @@ function setFiles(element, files) {
         render({ source: element, data: Array.from(selected.values()) })
 }
 
+// TODO: Could this benifit from media processing to save results locally
 async function save(element, action, data) {
     try {
         if (!data)
@@ -461,8 +463,8 @@ async function upload(element, data) {
                 files[i].directory = directory
 
 
-                if (files[i].size > segmentSize) {
-                    let { streamConfig, segments } = await processFile(files[i], null, segmentSize);
+                if (input.processFile && files[i].size > segmentSize) {
+                    let { streamConfig, playlist, segments } = await input.processFile(files[i], null, segmentSize);
                     files[i].src = streamConfig
                     for (let j = 0; j < segments.length; j++) {
                         segments[j].path = path
@@ -560,6 +562,7 @@ async function Import(element, data) {
 
         if (data.length) {
             for (let i = 0; i < data.length; i++) {
+                // TODO: if _id exist use update method
                 data[i].method = data[i].type + '.create'
                 data[i] = await Crud.send(data[i])
             }
