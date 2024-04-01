@@ -150,6 +150,11 @@ async function fileEvent(event) {
 
             if (!files[i].src)
                 await readFile(files[i])
+            // if (!files[i].src)
+            //     files[i].src = files[i]
+
+            // if (!files[i].src.name)
+            //     files[i].src = files[i]
 
             if (!files[i].size)
                 files[i].size = handle.size
@@ -173,7 +178,7 @@ async function fileEvent(event) {
             console.log("Files selected:", selected);
 
             if (input.renderValue)
-                input.renderValue(Array.from(selected.values()))
+                input.renderValue(Array.from(selected.values()));
 
             const isImport = input.getAttribute('import')
             const isRealtime = input.getAttribute('realtime')
@@ -226,7 +231,7 @@ async function getFileId(file) {
     }
 }
 
-async function getFiles(fileInputs) {
+async function getFiles(fileInputs, readAs) {
     const files = [];
 
     if (!Array.isArray(fileInputs))
@@ -236,8 +241,13 @@ async function getFiles(fileInputs) {
         const selected = inputs.get(input)
         if (selected) {
             for (let file of Array.from(selected.values())) {
-                if (!file.src)
-                    await readFile(file)
+                if (!file.src) {
+                    // if (readAs === 'blob')
+                    file.src = file
+                    // else
+                    //     await readFile(file, readAs)
+                }
+
                 let fileObject = { ...file }
                 fileObject.size = file.size
                 await getCustomData(fileObject)
@@ -269,13 +279,15 @@ async function getCustomData(file) {
 }
 
 // This function reads the file and returns its src
-function readFile(file) {
+function readFile(file, readAs) {
     return new Promise((resolve) => {
         const fileType = file.type.split('/');
-        let readAs;
 
         if (fileType[1] === 'directory') {
             return resolve(file)
+        } else if (readAs) {
+            if (readAs === 'blob')
+                return resolve(file)
         } else if (fileType[0] === 'image') {
             readAs = 'readAsDataURL';
         } else if (fileType[0] === 'video') {
@@ -412,26 +424,28 @@ async function upload(element, data) {
         element = [element]
 
     for (let i = 0; i < element.length; i++) {
-        const inputs = []
+        const fileInputs = []
         if (element[i].type === 'file')
-            inputs.push(element[i])
+            fileInputs.push(element[i])
         else if (element[i].tagName === 'form') {
-            let fileInputs = element[i].querySelectorAll('input[type="file"]')
-            inputs.push(...fileInputs)
+            fileInputs.push(...element[i].querySelectorAll('input[type="file"]'))
         } else {
             const form = element[i].closest('form')
             if (form)
-                inputs.push(...form.querySelectorAll('input[type="file"]'))
+                fileInputs.push(...form.querySelectorAll('input[type="file"]'))
         }
 
-        for (let input of inputs) {
+        for (let input of fileInputs) {
             let Data = Elements.getObject(input);
-            let key = getAttribute('key')
-            if (Data.type === 'key')
+            let object = input.getAttribute('object') || ''
+            let key = input.getAttribute('key')
+
+            Data.broadcastBrowser = false
+            if (!Data.type || Data.type === 'key')
                 Data.type = 'object'
 
             Data.method = Data.type + '.update'
-            if (Data.array)
+            if (!Data.array)
                 Data.array = 'files'
 
             let path = input.getAttribute('path')
@@ -440,10 +454,16 @@ async function upload(element, data) {
             if (path) {
                 directory = path.split('/');
                 directory = directory[directory.length - 1];
-                if (!path.endswith('/'))
+                if (!path.endsWith('/'))
                     path += '/'
             } else
                 path = directory = '/'
+
+            if (!Data.host)
+                Data.host = ['*']
+
+            if (!Data.public)
+                Data.public = true
 
             if (input.getFilter) {
                 Data.$filter = await input.getFilter()
@@ -455,22 +475,38 @@ async function upload(element, data) {
                 }
 
 
-            let files = await getFiles(input)
+            // let files = await getFiles(input, 'blob')
+            let files
+            const selected = inputs.get(input)
+            if (selected) {
+                files = Array.from(selected.values())
+            }
+
             let segmentSize = 10 * 1024 * 1024
             for (let i = 0; i < files.length; i++) {
                 files[i].path = path
-                files[i].pathname = path + '/' + files[i].name
+                files[i].pathname = path + files[i].name
                 files[i].directory = directory
+
+                // let fileObject = { ...file }
+                // fileObject.size = file.size
+                // await getCustomData(fileObject)
 
 
                 if (input.processFile && files[i].size > segmentSize) {
-                    let { streamConfig, playlist, segments } = await input.processFile(files[i], null, segmentSize);
-                    files[i].src = streamConfig
+                    // let test = await input.processFile(files[i], null, segmentSize, null, null, null, input);
+                    // console.log('test')
+                    let { playlist, segments } = await input.processFile(files[i], null, segmentSize);
+                    files[i].src = playlist
                     for (let j = 0; j < segments.length; j++) {
                         segments[j].path = path
-                        segments[j].pathname = path + '/' + segments[j].name
+                        segments[j].pathname = path + segments[j].name
                         segments[j].directory = directory
+                        segments[j] = { ...segments[j], ...await readFile(segments[j].src) }
+                        segments[j].public = true
+                        segments[j].host = ['*']
 
+                        playlist.segments[j].src = segments[j].pathname
                         Data.$filter.query.pathname = segments[j].pathname
                         Crud.send({
                             ...Data,
@@ -479,26 +515,32 @@ async function upload(element, data) {
                         });
                     }
 
+                } else {
+                    files[i] = { ...files[i], ...await readFile(files[i].src) }
                 }
-            }
 
-            let object = input.getAttribute('object')
-            if (key) {
-                Data[Data.type] = { _id: object, [key]: files }
-            } else {
-                Data[Data.type] = files
-            }
+                if (!key) {
+                    Data[Data.type] = { ...files[i] }
+                } else {
+                    Data[Data.type] = { [key]: { ...files[i] } }
+                }
 
-            // Data.$filter.query.pathname = files[i].pathname
+                if (object) {
+                    Data[Data.type]._id = object // test
+                }
 
-            let response = await Crud.send({
-                ...Data,
-                upsert: true
-            });
+                delete Data[Data.type].input
+                Data.$filter.query.pathname = files[i].pathname
+                let response = await Crud.send({
+                    ...Data,
+                    upsert: true
+                });
 
-            data.push(response)
-            if (response && (!object || object !== response.object)) {
-                Elements.setTypeValue(element, response);
+                console.log(response, 'tes')
+                // if (response && (!object || object !== response.object)) {
+                //     Elements.setTypeValue(element, response);
+                // }
+
             }
         }
 
