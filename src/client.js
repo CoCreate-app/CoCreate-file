@@ -441,10 +441,7 @@ async function upload(element, data) {
             let key = input.getAttribute('key')
 
             Data.broadcastBrowser = false
-            if (!Data.type || Data.type === 'key')
-                Data.type = 'object'
-
-            Data.method = Data.type + '.update'
+            Data.method = 'object.update'
             if (!Data.array)
                 Data.array = 'files'
 
@@ -495,48 +492,139 @@ async function upload(element, data) {
 
                 if (input.processFile && files[i].size > segmentSize) {
                     // let test = await input.processFile(files[i], null, segmentSize, null, null, null, input);
-                    // console.log('test')
                     let { playlist, segments } = await input.processFile(files[i], null, segmentSize);
-                    files[i].src = playlist
-                    for (let j = 0; j < segments.length; j++) {
-                        segments[j].path = path
-                        segments[j].pathname = path + segments[j].name
-                        segments[j].directory = directory
-                        segments[j] = { ...segments[j], ...await readFile(segments[j].src) }
-                        segments[j].public = true
-                        segments[j].host = ['*']
 
-                        playlist.segments[j].src = segments[j].pathname
-                        Data.$filter.query.pathname = segments[j].pathname
-                        Crud.send({
-                            ...Data,
-                            object: segments[j],
-                            upsert: true
+                    // Create a video element
+                    const videoElement = document.createElement('video');
+                    videoElement.setAttribute('controls', ''); // Add controls so you can play/pause
+                    videoElement.style.width = '100%';
+                    document.body.appendChild(videoElement);
+
+                    const mediaSource = new MediaSource();
+                    videoElement.src = URL.createObjectURL(mediaSource);
+
+                    mediaSource.addEventListener('sourceopen', () => {
+                        const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E"');
+
+                        sourceBuffer.addEventListener('updateend', () => {
+                            console.log('Append operation completed.');
+                            try {
+                                console.log('Buffered ranges:', sourceBuffer.buffered);
+                                // Append next segment here if applicable                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                            } catch (e) {
+                                console.error('Error accessing buffered property:', e);
+                            }
                         });
-                    }
 
-                } else {
-                    files[i] = { ...files[i], ...await readFile(files[i].src) }
+                        function appendSegment(index) {
+                            if (index >= segments.length) {
+                                console.log('All segments have been appended.');
+                                return;
+                            }
+
+                            if (!sourceBuffer.updating) {
+                                segments[index].src.arrayBuffer().then(arrayBuffer => {
+                                    console.log(`Appending segment ${index}`);
+                                    sourceBuffer.appendBuffer(arrayBuffer);
+                                    // Next segment will be appended on 'updateend' event
+                                }).catch(error => {
+                                    console.error(`Error reading segment[${index}] as ArrayBuffer:`, error);
+                                });
+                            }
+                        }
+
+                        // Append the first segment to start
+                        appendSegmfent(0);
+                    });
+
+
+                    // mediaSource.addEventListener('sourceopen', () => {
+                    //     const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E"'); // avc1.4D401E, avc1.4D401F, avc1.4D4028, avc1.4D4020, avc1.4D4029, avc1.4D402A
+
+                    //     // Append the first segment to start
+                    //     if (!sourceBuffer.updating) {
+
+                    //         segments[0].src.arrayBuffer().then(arrayBuffer => {
+                    //             sourceBuffer.appendBuffer(arrayBuffer);
+
+                    //             // Wait for 3 seconds before logging the sourceBuffer state
+                    //             setTimeout(() => {
+                    //                 console.log(sourceBuffer);
+                    //             }, 3000); // 3000 milliseconds = 3 seconds
+
+                    //             sourceBuffer.addEventListener('updateend', () => {
+                    //                 console.log('Append operation completed.');
+                    //                 try {
+                    //                     console.log('Buffered ranges:', sourceBuffer.buffered);
+                    //                 } catch (e) {
+                    //                     console.error('Error accessing buffered property:', e);
+                    //                 }
+                    //                 // Proceed with additional operations here
+                    //             });
+
+                    //         }).catch(error => {
+                    //             console.error('Error reading segment[0] as ArrayBuffer:', error);
+                    //         });
+
+
+                    //         // segments[0].src.arrayBuffer().then(arrayBuffer => {
+                    //         //     sourceBuffer.appendBuffer(arrayBuffer);
+                    //         // })
+
+                    //         // let segmentLength = 0
+                    //         // sourceBuffer.addEventListener('updateend', () => {
+                    //         //     segmentLength += 1
+                    //         //     if (segments[segmentLength])
+                    //         //         segments[segmentLength].src.arrayBuffer().then(arrayBuffer => {
+                    //         //             console.log(sourceBuffer)
+                    //         //             // sourceBuffer.appendBuffer(arrayBuffer);
+                    //         //         })
+                    //         // });
+                    //     }
+                    // });
+
                 }
 
-                if (!key) {
-                    Data[Data.type] = { ...files[i] }
-                } else {
-                    Data[Data.type] = { [key]: { ...files[i] } }
-                }
+                // files[i].src = playlist
+                // for (let j = 0; j < segments.length; j++) {
+                //     segments[j].path = path
+                //     segments[j].pathname = path + segments[j].name
+                //     segments[j].directory = directory
+                //     segments[j] = { ...segments[j], ...await readFile(segments[j].src) }
+                //     segments[j].public = true
+                //     segments[j].host = ['*']
 
-                if (object) {
-                    Data[Data.type]._id = object // test
-                }
+                //     playlist.segments[j].src = segments[j].pathname
+                //     Data.$filter.query.pathname = segments[j].pathname
+                //     Crud.send({
+                //         ...Data,
+                //         object: segments[j],
+                //         upsert: true
+                //     });
+                // }
 
-                delete Data[Data.type].input
-                Data.$filter.query.pathname = files[i].pathname
-                let response = await Crud.send({
-                    ...Data,
-                    upsert: true
-                });
+                // } else {
+                //     files[i] = { ...files[i], ...await readFile(files[i].src) }
+                // }
 
-                console.log(response, 'tes')
+                // if (!key) {
+                //     Data.object = { ...files[i] }
+                // } else {
+                //     Data.object = { [key]: { ...files[i] } }
+                // }
+
+                // if (object) {
+                //     Data.object._id = object // test
+                // }
+
+                // delete Data.object.input
+                // Data.$filter.query.pathname = files[i].pathname
+                // let response = await Crud.send({
+                //     ...Data,
+                //     upsert: true
+                // });
+
+                // console.log(response, 'tes')
                 // if (response && (!object || object !== response.object)) {
                 //     Elements.setTypeValue(element, response);
                 // }
