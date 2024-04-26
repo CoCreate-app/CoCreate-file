@@ -1,3 +1,13 @@
+## [1.17.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.0...v1.17.1) (2024-04-26)
+
+
+### Bug Fixes
+
+* condition to check input.ProcessFIle exists ([478d652](https://github.com/CoCreate-app/CoCreate-file/commit/478d65274f52ac8c0de9341ee5ca1766e0542f7f))
+* getFiles returns files as is without conversion ([ad57ce3](https://github.com/CoCreate-app/CoCreate-file/commit/ad57ce3895c4246268b49b192d69e2bae09cf0c7))
+* method set to static object.update ([27dbf8e](https://github.com/CoCreate-app/CoCreate-file/commit/27dbf8e717a4bc5ffd5c2f6a6bae28e081e8a7b2))
+* replaced keyword spaces with hyphens and lowercase letters only ([77f9d89](https://github.com/CoCreate-app/CoCreate-file/commit/77f9d896ded45e1341d58faa6973d58198a4e308))
+
 # [1.17.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.16.0...v1.17.0) (2024-03-18)
 
 
