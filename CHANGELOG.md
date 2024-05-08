@@ -1,3 +1,10 @@
+## [1.17.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.2...v1.17.3) (2024-05-08)
+
+
+### Bug Fixes
+
+* description length less than 350 characters ([c2a9a7a](https://github.com/CoCreate-app/CoCreate-file/commit/c2a9a7a8aa6d96cfe0e41e563f4219fd87cfad87))
+
 ## [1.17.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.1...v1.17.2) (2024-04-29)
 
 
