@@ -534,7 +534,7 @@ async function upload(element, data) {
                         }
 
                         // Append the first segment to start
-                        appendSegmfent(0);
+                        appendSegment(0);
                     });
 
 
@@ -877,7 +877,7 @@ async function Delete(file) {
 Observer.init({
     name: 'CoCreateFileAddedNodes',
     observe: ['addedNodes'],
-    target: 'input[type="file"]',
+    target: '[type="file"]',
     callback: mutation => init(mutation.target)
 
 });
@@ -886,7 +886,7 @@ Observer.init({
     name: 'CoCreateFileAttributes',
     observe: ['attributes'],
     attributeName: ['type'],
-    target: 'input[type="file"]',
+    target: '[type="file"]',
     callback: mutation => init(mutation.target)
 });
 
