@@ -108,12 +108,21 @@ async function init(elements) {
 
 async function fileEvent(event) {
     try {
-        const input = event.target;
+        const input = event.currentTarget;
+        let multiple = input.multiple
+        if (!multiple) {
+            multiple = input.getAttribute('multiple');
+            if (multiple !== null && multiple !== "false") {
+                multiple = true;
+            } else {
+                multiple = false;
+            }
+        }
+
         let selected = inputs.get(input) || new Map()
         let files = input.files;
         if (!files || !files.length) {
             event.preventDefault()
-            const multiple = input.multiple
             if (input.hasAttribute('directory')) {
                 let handle = await window.showDirectoryPicker();
                 let file = {
@@ -130,6 +139,14 @@ async function fileEvent(event) {
                 }
 
                 file.handle = handle
+
+                if (!multiple) {
+                    for (let [id] of selected) {
+                        Files.delete(id);
+                    }
+                    selected.clear();
+                }
+
                 selected.set(file.id, file)
                 Files.set(file.id, file)
 
@@ -167,6 +184,13 @@ async function fileEvent(event) {
             files[i].id = await getFileId(files[i])
             if (selected.has(files[i].id)) {
                 console.log('Duplicate file has been selected. This could be in error as the browser does not provide a clear way of checking duplictaes')
+            }
+
+            if (!multiple) {
+                for (let [id] of selected) {
+                    Files.delete(id);
+                }
+                selected.clear();
             }
 
             selected.set(files[i].id, files[i])
@@ -892,7 +916,7 @@ Observer.init({
 
 Actions.init([
     {
-        name: ["upload", "download", "saveLocally", "import", "export"],
+        name: ["upload", "download", "saveLocally", "asveAs", "import", "export"],
         callback: (action) => {
             if (action.name === 'upload')
                 upload(action.element)
