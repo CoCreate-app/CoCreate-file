@@ -244,14 +244,11 @@ async function getDirectoryHandles(handle, name) {
 
 async function getFileId(file) {
 
-    if (file.id = file.path || file.webkitRelativePath) {
+    if (file.id = file.pathname) {
         return file.id;
     } else {
-        const { name, size, type, lastModified } = file;
-        const key = `${name}${size}${type}${lastModified}`;
-
-        file.id = key
-        return key;
+        file.id = `${file.name}${file.size}${file.type}${file.lastModified}`;
+        return file.id;
     }
 }
 
