@@ -1,3 +1,12 @@
+## [1.17.5](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.4...v1.17.5) (2024-06-19)
+
+
+### Bug Fixes
+
+* getFileId uses pathname as id ([be330a5](https://github.com/CoCreate-app/CoCreate-file/commit/be330a54324ae878a8afadc68bdae1684e944b45))
+* observer target selector ([50dc031](https://github.com/CoCreate-app/CoCreate-file/commit/50dc0318b7c9c02c2d610fe86158d47e6277e667))
+* replace selected file if multiple false ([d419dc3](https://github.com/CoCreate-app/CoCreate-file/commit/d419dc38f223d1d809bcf014dd2fadb0a629fae7))
+
 ## [1.17.4](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.3...v1.17.4) (2024-06-12)
 
 
