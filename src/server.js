@@ -334,7 +334,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
         let binary = fs.readFileSync(path);
         let content = new Buffer.from(binary).toString(readType);
 
-        return content
+        return content;
     }
 
     /**
