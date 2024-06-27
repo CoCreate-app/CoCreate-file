@@ -801,6 +801,44 @@ async function exportFile(data) {
     link.remove();
 }
 
+// TODO: handled by import? if value is a valid url get file by url?
+async function importFileFromURL(url) {
+    try {
+        // Fetch the file data from the URL
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+
+        // Get the filename from the URL
+        const urlParts = url.split('/');
+        const filename = urlParts[urlParts.length - 1];
+
+        // Convert the response data to a Blob
+        const blob = await response.blob();
+
+        // Create a File object
+        const file = new File([blob], filename, { type: blob.type });
+
+        // Create a custom file object with additional properties
+        const fileObject = {
+            src: file,
+            size: file.size,
+            directory: '/',
+            path: '/',
+            pathname: '/' + filename,
+            'content-type': file.type,
+            input: handle.input || null,
+            id: await getFileId(file)
+        };
+
+        return fileObject;
+    } catch (error) {
+        console.error('Error importing file from URL:', error);
+        throw error;
+    }
+}
+
 async function fileRenderAction(action) {
     const element = action.element
 
