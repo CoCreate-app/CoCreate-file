@@ -346,6 +346,8 @@ function setFiles(element, files) {
 
     let selected = inputs.get(element) || new Map()
     for (let i = 0; i < files.length; i++) {
+        if (!files[i].id)
+            files[i].id = files[i].pathname
         files[i].input = element
         selected.set(files[i].id, files[i])
         Files.set(files[i].id, files[i])
@@ -802,37 +804,51 @@ async function exportFile(data) {
 }
 
 // TODO: handled by import? if value is a valid url get file by url?
-async function importFileFromURL(url) {
+async function importURL(action) {
     try {
-        // Fetch the file data from the URL
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+        let element = action.element
+        let url = element.getAttribute('url')
+        if (!url) {
+            element = action.form.querySelector('[import-url]')
+            if (!element)
+                return
+            url = element.getValue()
+            if (!url)
+                return
+
         }
 
-        // Get the filename from the URL
-        const urlParts = url.split('/');
-        const filename = urlParts[urlParts.length - 1];
+        const urlObject = new URL(url);
+        const filename = urlObject.pathname.split('/').pop();
 
-        // Convert the response data to a Blob
-        const blob = await response.blob();
-
-        // Create a File object
-        const file = new File([blob], filename, { type: blob.type });
-
-        // Create a custom file object with additional properties
-        const fileObject = {
-            src: file,
-            size: file.size,
+        const file = {
+            src: url,
+            name: filename,
             directory: '/',
             path: '/',
-            pathname: '/' + filename,
-            'content-type': file.type,
-            input: handle.input || null,
-            id: await getFileId(file)
+            pathname: '/' + filename
         };
 
-        return fileObject;
+        await getCustomData(file)
+
+        let data = await Crud.socket.send({
+            method: 'importUrl',
+            file,
+            broadcast: false,
+            broadcastClient: false
+        })
+
+        let queriedElements = queryElements({ element, prefix: 'import-url' })
+        if (queriedElements) {
+            for (let queriedElement of queriedElements)
+                queriedElement.setValue(data.file)
+
+        }
+
+        document.dispatchEvent(new CustomEvent(action.name, {
+            detail: {}
+        }));
+
     } catch (error) {
         console.error('Error importing file from URL:', error);
         throw error;
@@ -951,7 +967,7 @@ Observer.init({
 
 Actions.init([
     {
-        name: ["upload", "download", "saveLocally", "asveAs", "import", "export"],
+        name: ["upload", "download", "saveLocally", "asveAs", "import", "export", "importUrl"],
         callback: (action) => {
             if (action.name === 'upload')
                 upload(action.element)
@@ -961,6 +977,8 @@ Actions.init([
                 Export(action.element)
             } else if (action.name === 'import') {
                 Import(action.element)
+            } else if (action.name === 'importUrl') {
+                importURL(action)
             } else {
                 // Something...
             }
