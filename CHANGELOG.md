@@ -1,3 +1,15 @@
+# [1.18.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.5...v1.18.0) (2024-08-24)
+
+
+### Bug Fixes
+
+* handle file.id when setFile() rendering. ([f9a561b](https://github.com/CoCreate-app/CoCreate-file/commit/f9a561b325ae0b8fe964b11d192c09ba2d144e4f))
+
+
+### Features
+
+* import file from url ([c073276](https://github.com/CoCreate-app/CoCreate-file/commit/c073276894009a04fdf59e3bebabbd34bea3f55b))
+
 ## [1.17.5](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.4...v1.17.5) (2024-06-19)
 
 
