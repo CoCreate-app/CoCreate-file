@@ -338,7 +338,8 @@ function readFile(file, readAs) {
 }
 
 function setFiles(element, files) {
-    if (!files) return
+    if (!files || typeof files !== 'object')
+        return
     if (!Array.isArray(files))
         files = [files]
     else if (!files.length)
