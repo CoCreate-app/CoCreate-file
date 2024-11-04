@@ -1,3 +1,18 @@
+# [1.19.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.18.0...v1.19.0) (2024-11-04)
+
+
+### Bug Fixes
+
+* observer taget has been renamed to selector ([edccd76](https://github.com/CoCreate-app/CoCreate-file/commit/edccd7664b459fce740f7935514805aa3611047d))
+* pretier.config.js and file formating ([a9af856](https://github.com/CoCreate-app/CoCreate-file/commit/a9af8567970d98ff6fcdba0b44d6a3f548423b42))
+* return if typeof file not object ([d0463e4](https://github.com/CoCreate-app/CoCreate-file/commit/d0463e417a1b8abd91a2c5c6b2187a62dfb83a17))
+
+
+### Features
+
+* add prettier.config.js and format files ([1929bea](https://github.com/CoCreate-app/CoCreate-file/commit/1929beaf8e0279bc41a205bad83b88510cefa288))
+* add prettier.config.js and format files ([499e705](https://github.com/CoCreate-app/CoCreate-file/commit/499e705ba9bae33afe94d8b109f00e395480b1fc))
+
 # [1.18.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.17.5...v1.18.0) (2024-08-24)
 
 
