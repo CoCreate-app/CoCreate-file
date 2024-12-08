@@ -284,6 +284,7 @@ async function getFiles(fileInputs, readAs) {
 }
 
 async function getCustomData(file) {
+	if (!file.id) file.id = file.pathname;
 	// TODO: Consider potential replacment of file_id, perhaps supporting selector
 	let form = document.querySelector(`[file_id="${file.id}"]`);
 	if (form) {
