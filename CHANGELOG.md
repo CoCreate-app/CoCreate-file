@@ -1,3 +1,12 @@
+## [1.19.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.0...v1.19.1) (2024-12-14)
+
+
+### Bug Fixes
+
+* fileElement refrence ([6042290](https://github.com/CoCreate-app/CoCreate-file/commit/6042290aa667b53e42f7afc2cc85dd4c2642dc76))
+* if no file.id set id using  pathname in getCustomData() ([f1ef237](https://github.com/CoCreate-app/CoCreate-file/commit/f1ef237b8d807067537b29ba9ae60401b334a813))
+* improved handeling of multiple ([c56ac70](https://github.com/CoCreate-app/CoCreate-file/commit/c56ac70a8732bd86ba04bd0e9004dadd59c48114))
+
 # [1.19.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.18.0...v1.19.0) (2024-11-04)
 
 
