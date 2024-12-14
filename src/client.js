@@ -111,13 +111,12 @@ async function fileEvent(event) {
 	try {
 		let input = event.currentTarget;
 		let multiple = input.multiple;
-		if (!multiple) {
+
+		// If 'multiple' is not explicitly set, check the attribute.
+		if (multiple !== true && multiple !== false) {
 			multiple = input.getAttribute("multiple");
-			if (multiple !== null && multiple !== "false") {
-				multiple = true;
-			} else {
-				multiple = false;
-			}
+			multiple = multiple !== null && multiple !== "false";
+			input.multiple = multiple;
 		}
 
 		let selected = inputs.get(input) || new Map();
@@ -347,12 +346,20 @@ function setFiles(element, files) {
 	else if (!files.length) return;
 
 	let selected = inputs.get(element) || new Map();
+
+	if (!element.multiple) {
+		for (let key of selected.keys()) {
+			selected.delete(key); // Remove the entry from the selected map
+			Files.delete(key); // Remove the corresponding entry from the Files map
+		}
+	}
 	for (let i = 0; i < files.length; i++) {
 		if (!files[i].id) files[i].id = files[i].pathname;
 		files[i].input = element;
 		selected.set(files[i].id, files[i]);
 		Files.set(files[i].id, files[i]);
 	}
+
 	inputs.set(element, selected);
 	if (element.renderValue)
 		render({
