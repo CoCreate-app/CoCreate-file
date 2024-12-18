@@ -751,6 +751,7 @@ async function Import(element, data) {
 	return data;
 }
 
+// TODO: Export selected rows or entire table or entire array
 async function Export(element, data) {
 	if (!data) data = [];
 
