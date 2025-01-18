@@ -1,3 +1,10 @@
+## [1.19.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.1...v1.19.2) (2025-01-18)
+
+
+### Bug Fixes
+
+* formating ([65e9a91](https://github.com/CoCreate-app/CoCreate-file/commit/65e9a915b17f616abd5bed917fa7323b1f59bd28))
+
 ## [1.19.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.0...v1.19.1) (2024-12-14)
 
 
