@@ -1,81 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>file | CoCreateJS</title>
+	<head>
+		<title>file | CoCreateJS</title>
 
-        <!-- CoCreate Favicon -->
-        <link
-            rel="icon"
-            type="image/png"
-            sizes="32x32"
-            href="../assets/favicon.ico" />
-        <link rel="manifest" href="/manifest.webmanifest" />
-    </head>
-    <body>
-        <form>
-            <input type="file" import />
-            <button actions="import">import</button>
-        </form>
+		<!-- CoCreate Favicon -->
+		<link
+			rel="icon"
+			type="image/png"
+			sizes="32x32"
+			href="../assets/favicon.ico" />
+		<link rel="manifest" href="/manifest.webmanifest" />
+	</head>
+	<body>
+		<form>
+			<input type="file" import />
+			<button actions="import">import</button>
+		</form>
 
-        <form>
-            <input type="file" path="/assets/test" />
-            <button actions="upload">upload</button>
-        </form>
+		<form>
+			<input type="file" path="/assets/test" />
+			<button actions="upload">upload</button>
+		</form>
 
-        <form>
-            <input type="file" multiple />
-            <button actions="upload">upload</button>
-        </form>
+		<form>
+			<input type="file" multiple />
+			<button actions="upload">upload</button>
+		</form>
 
-        <form>
-            <input type="file" directory />
-            <button actions="upload">upload</button>
-        </form>
+		<form>
+			<input type="file" directory />
+			<button actions="upload">upload</button>
+		</form>
 
-        <div
-            type="file"
-            array="test"
-            object=""
-            key="image"
-            accept="image/*"
-            placeholder="Upload Image or Video Thumbnail"
-            class="floating-label min-height:40px active"
-            render-selector="[template]"
-            active>
-            <div template>
-                <img src="{{image.src}}" alt="image" width="100%" />
-            </div>
-        </div>
+		<div
+			type="file"
+			array="test"
+			object=""
+			key="image"
+			accept="image/*"
+			placeholder="Upload Image or Video Thumbnail"
+			class="floating-label min-height:40px active"
+			render-selector="[template]"
+			active>
+			<div template>
+				<img src="{{image.src}}" alt="image" width="100%" />
+			</div>
+		</div>
 
-        <form>
-            <input
-                type="file"
-                directory
-                realtime="false"
-                render-selector="document; [template]" />
+		<form>
+			<input
+				type="file"
+				directory
+				realtime="false"
+				render-document="[template]" />
 
-            <button actions="saveLocally">saveLocally</button>
-        </form>
+			<button actions="saveLocally">saveLocally</button>
+		</form>
 
-        <div template file_id="{{id}}">
-            <button actions="createFile" value="tesing.js">createFile</button>
-            <button actions="deleteFile">deleteFile</button>
-            <button actions="createDirectory">createDirectory</button>
-            <button actions="deleteDirectory">deleteDirectory</button>
+		<div template file_id="{{id}}">
+			<button actions="createFile" value="tesing.js">createFile</button>
+			<button actions="deleteFile">deleteFile</button>
+			<button actions="createDirectory">createDirectory</button>
+			<button actions="deleteDirectory">deleteDirectory</button>
 
-            <input file="name" value="{{name}}" />
-            <input file="directory" value="{{directory}}" />
-            <input file="content-type" value="{{content-type}}" />
-            <textarea file="src" value-type="string">{{src}}</textarea>
-            <div>id: {{id}}</div>
-        </div>
+			<input file="name" value="{{name}}" />
+			<input file="directory" value="{{directory}}" />
+			<input file="content-type" value="{{content-type}}" />
+			<textarea file="src" value-type="string">{{src}}</textarea>
+			<div>id: {{id}}</div>
+		</div>
 
-        <form>
-            <button actions="export" array="files">export</button>
-        </form>
+		<form>
+			<button actions="export" array="files">export</button>
+		</form>
 
-        <!-- <script src="../dist/CoCreate-file.js"></script> -->
-        <script src="../../../CoCreateJS/dist/CoCreate.js"></script>
-        <!-- <script src="https://CoCreate.app/dist/CoCreate.js"></script> -->
-    </body>
+		<!-- <script src="../dist/CoCreate-file.js"></script> -->
+		<script src="../../../CoCreateJS/dist/CoCreate.js"></script>
+		<!-- <script src="https://CoCreate.app/dist/CoCreate.js"></script> -->
+	</body>
 </html>

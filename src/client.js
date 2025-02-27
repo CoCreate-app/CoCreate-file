@@ -859,7 +859,7 @@ async function importURL(action) {
 				queriedElement.setValue(data.file);
 		}
 
-		document.dispatchEvent(
+		action.element.dispatchEvent(
 			new CustomEvent(action.name, {
 				detail: {}
 			})
@@ -895,7 +895,7 @@ async function fileRenderAction(action) {
 		create(file, "directory", name);
 	} else if (action.name === "deleteDirectory") Delete(file);
 
-	document.dispatchEvent(
+	action.element.dispatchEvent(
 		new CustomEvent(action.name, {
 			detail: {}
 		})
@@ -1009,7 +1009,7 @@ Actions.init([
 				// Something...
 			}
 
-			document.dispatchEvent(
+			action.element.dispatchEvent(
 				new CustomEvent(action.name, {
 					detail: {}
 				})
