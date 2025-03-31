@@ -968,15 +968,15 @@ async function Delete(file) {
 
 Observer.init({
 	name: "CoCreateFileAddedNodes",
-	observe: ["addedNodes"],
+	types: ["addedNodes"],
 	selector: '[type="file"]',
 	callback: (mutation) => init(mutation.target)
 });
 
 Observer.init({
 	name: "CoCreateFileAttributes",
-	observe: ["attributes"],
-	attributeName: ["type"],
+	types: ["attributes"],
+	attributeFilter: ["type"],
 	selector: '[type="file"]',
 	callback: (mutation) => init(mutation.target)
 });
