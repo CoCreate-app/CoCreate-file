@@ -1,3 +1,11 @@
+## [1.19.3](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.2...v1.19.3) (2025-04-11)
+
+
+### Bug Fixes
+
+* fire action end event on elememt instead of document ([3e78905](https://github.com/CoCreate-app/CoCreate-file/commit/3e789054e65e87c4f988d2041dfe8687684ebff5))
+* update observer observe param to type and and attributeName to attributeFilter ([524a05e](https://github.com/CoCreate-app/CoCreate-file/commit/524a05e0080c4473f28fc9e5bd1414479e313eb7))
+
 ## [1.19.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.1...v1.19.2) (2025-01-18)
 
 
