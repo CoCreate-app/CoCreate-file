@@ -443,7 +443,7 @@ async function save(element, action, data) {
 				element: element[i],
 				prefix: action
 			});
-			if (queryElements) {
+			if (queryElements.length) {
 				save(queryElements, action, data);
 			}
 		}
@@ -682,7 +682,7 @@ async function upload(element, data) {
 			element: element[i],
 			prefix: "upload"
 		});
-		if (queriedElements) {
+		if (queriedElements.length) {
 			upload(queriedElements, data);
 		}
 	}
@@ -744,7 +744,7 @@ async function Import(element, data) {
 			element: element[i],
 			prefix: "import"
 		});
-		if (queriedElements) {
+		if (queriedElements.length) {
 			Import(queriedElements, data);
 		}
 	}
@@ -786,7 +786,7 @@ async function Export(element, data) {
 			element: element[i],
 			prefix: "export"
 		});
-		if (queriedElements) {
+		if (queriedElements.length) {
 			Export(queriedElements, data);
 		}
 	}
@@ -854,7 +854,7 @@ async function importURL(action) {
 		});
 
 		let queriedElements = queryElements({ element, prefix: "import-url" });
-		if (queriedElements) {
+		if (queriedElements.length) {
 			for (let queriedElement of queriedElements)
 				queriedElement.setValue(data.file);
 		}

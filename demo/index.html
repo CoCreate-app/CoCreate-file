@@ -40,7 +40,7 @@
 			accept="image/*"
 			placeholder="Upload Image or Video Thumbnail"
 			class="floating-label min-height:40px active"
-			render-selector="[template]"
+			render-query="[template]"
 			active>
 			<div template>
 				<img src="{{image.src}}" alt="image" width="100%" />
@@ -52,7 +52,7 @@
 				type="file"
 				directory
 				realtime="false"
-				render-document="[template]" />
+				render-query="$document [template]" />
 
 			<button actions="saveLocally">saveLocally</button>
 		</form>
