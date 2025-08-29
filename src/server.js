@@ -88,7 +88,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 	let sources = CoCreateConfig.sources;
 	let configDirectoryPath = path.dirname(configPath);
 
-	if (match && !Array.isArray(match)) match = [match];
+	if (match && !Array.isArray(match)) match = [path.dirname(match)];
 	else if (!match) match = [];
 
 	let config = await Config(
@@ -527,5 +527,5 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 		}
 	}
 
-	run();
+	await run();
 };
