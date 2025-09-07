@@ -1,3 +1,12 @@
+## [1.19.6](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.5...v1.19.6) (2025-09-07)
+
+
+### Bug Fixes
+
+* correct exclusion logic to check each item in the exclude array ([1fae391](https://github.com/CoCreate-app/CoCreate-file/commit/1fae391f4333813aa30805e87ba7ea28fefda5d3))
+* ensure match is an array by wrapping non-array values ([5c67ec5](https://github.com/CoCreate-app/CoCreate-file/commit/5c67ec592f0217199b2ce965d14e377d6faa9a5b))
+* ensure match is an array of directory paths and await run function ([eb47cf0](https://github.com/CoCreate-app/CoCreate-file/commit/eb47cf00c672ac5110293b3dab38fd8186bb8d64))
+
 ## [1.19.5](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.4...v1.19.5) (2025-05-01)
 
 
