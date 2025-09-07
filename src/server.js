@@ -182,7 +182,7 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 		for (let file of files) {
 			let skip = false;
 			for (let i = 0; i < exclude.length; i++) {
-				if (file.includes(exclude)) {
+				if (file.includes(exclude[i])) {
 					skip = true;
 					break;
 				}
