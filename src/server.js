@@ -83,7 +83,12 @@ const mimeTypes = {
 	".7z": "application/x-7z-compressed"
 };
 
-module.exports = async function file(CoCreateConfig, configPath, match) {
+module.exports = async function file(
+	CoCreateConfig,
+	configPath,
+	match,
+	options
+) {
 	let directories = CoCreateConfig.directories;
 	let sources = CoCreateConfig.sources;
 	let configDirectoryPath = path.dirname(configPath);
@@ -279,6 +284,20 @@ module.exports = async function file(CoCreateConfig, configPath, match) {
 				array: directory.array || "files",
 				object
 			};
+
+			if (
+				options.translate &&
+				mimeType === "text/html" &&
+				Array.isArray(directory.languages) &&
+				!object.translations
+			) {
+				// Call your AI translation service
+				const translations = await options.translate(
+					source,
+					directory.languages
+				);
+				newObject.object.translations = translations;
+			}
 
 			if (directory.storage) newObject.storage = directory.storage;
 			if (directory.database) newObject.database = directory.database;
