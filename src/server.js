@@ -291,12 +291,17 @@ module.exports = async function file(
 				Array.isArray(directory.languages) &&
 				!object.translations
 			) {
-				// Call your AI translation service
-				const translations = await options.translate(
-					source,
-					directory.languages
-				);
-				newObject.object.translations = translations;
+				try {
+					// Call your AI translation service
+					const translations = await options.translate(
+						source,
+						directory.languages
+					);
+					newObject.object.translations = translations;
+				} catch (err) {
+					console.error("Translation error:", err);
+					// Continue without translations
+				}
 			}
 
 			if (directory.storage) newObject.storage = directory.storage;
