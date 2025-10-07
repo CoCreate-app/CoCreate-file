@@ -544,15 +544,11 @@ module.exports = async function file(
 				`module.exports = ${JSON.stringify(newConfig, null, 4)};`
 			);
 		}
-
-		if (!match.length) {
-			console.log("upload complete!");
-
-			setTimeout(function () {
-				process.exit();
-			}, 2000);
-		}
 	}
 
 	await run();
+	// Only exit if not in watch mode
+	if (!process.argv.includes("--watch") && !process.argv.includes("-w")) {
+		process.exit();
+	}
 };

@@ -28,7 +28,7 @@ import Elements from "@cocreate/elements";
 import Actions from "@cocreate/actions";
 import { render } from "@cocreate/render";
 import { queryElements } from "@cocreate/utils";
-import "@cocreate/element-prototype";
+import { setValue } from "@cocreate/element-prototype";
 
 const inputs = new Map();
 const Files = new Map();
