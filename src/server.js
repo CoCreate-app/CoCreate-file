@@ -353,11 +353,16 @@ module.exports = async function file(
 	}
 
 	async function getSource(path, mimeType, isSymlink) {
-		let readType = "utf8";
-		if (mimeType === "image/svg+xml") {
-			readType = "utf8";
-		} else if (/^(image|audio|video)\/[-+.\w]+/.test(mimeType)) {
+		// Define categories for encoding types
+		const base64Types = /^(image|audio|video|font|application\/octet-stream|application\/x-font-ttf|application\/x-font-woff|application\/x-font-woff2|application\/x-font-opentype|application\/x-font-truetype|application\/x-font-eot)/;
+		const binaryTypes = /^(application\/zip|application\/x-7z-compressed|application\/x-rar-compressed|application\/pdf)/;
+
+		let readType = "utf8"; // Default to utf8
+
+		if (base64Types.test(mimeType)) {
 			readType = "base64";
+		} else if (binaryTypes.test(mimeType)) {
+			readType = "binary";
 		}
 
 		if (isSymlink) path = await realpathAsync(path);
@@ -372,123 +377,99 @@ module.exports = async function file(
 	 * Store files by config sources
 	 **/
 	async function runSources() {
-		let updatedSources = [];
+		let newConfig = require(configPath);
 
 		for (let i = 0; i < sources.length; i++) {
-			const { array, object } = sources[i];
+			let data = sources[i];
 
-			let source = { ...sources[i] };
-			let keys = new Map();
-			let response = {};
-			let isMatch = false;
-
-			try {
-				if (array) {
-					if (!object) object = {};
-					else
-						for (const key of Object.keys(object)) {
-							if (typeof object[key] != "string") continue;
-
-							let variables = object[key].match(
-								/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g
-							);
-							if (variables) {
-								let originalValue = object[key];
-								keys.set(key, originalValue);
-								let value = "";
-								for (let variable of variables) {
-									let entry = /{{\s*([\w\W]+)\s*}}/g.exec(
-										variable
-									);
-									entry = entry[1].trim();
-									if (entry) {
-										if (!fs.existsSync(entry)) continue;
-
-										if (!isMatch) {
-											const filePath = path.resolve(
-												configDirectoryPath,
-												entry
-											);
-											for (
-												let i = 0;
-												i < match.length;
-												i++
-											) {
-												if (
-													filePath.startsWith(
-														match[i]
-													)
-												) {
-													console.log(
-														"Source saved",
-														sources[i]
-													);
-													isMatch = true;
-													break;
-												}
-											}
-										}
-
-										let read_type = "utf8";
-										const fileExtension =
-											path.extname(entry);
-										let mime_type =
-											mimeTypes[fileExtension] ||
-											"text/html";
-
-										if (
-											/^(image|audio|video)\/[-+.\w]+/.test(
-												mime_type
-											)
-										) {
-											read_type = "base64";
-										}
-
-										let binary = fs.readFileSync(entry);
-										let content = new Buffer.from(
-											binary
-										).toString(read_type);
-										if (content) value += content;
-										// object[key] = object[key].replace(variable, content);
-									}
-								}
-								object[key] = value;
-							}
-						}
-
-					let data = { array, object };
-					if (!object._id && object.pathname)
-						data.$filter = {
-							query: {
-								$or: [{ pathname: object.pathname }]
-							}
-						};
-
-					if (match.length && isMatch)
-						response = await runStore(data);
+			// Handle string values
+			if (typeof data === "string") {
+				let {value, filePath } = await processVariables(data);
+				let response = await runStore(value);
+				if (response && response.object && response.object[0]) {
+					updateFilePath(filePath, response); // Call the new function to update the file path
 				}
-			} catch (err) {
-				console.log(err);
-				process.exit();
+			} else if (data.array && data.object) {
+				if (typeof data.object === "string") {
+					let {value, filePath } = await processVariables(data.object);
+					if (value) {
+						let response = await runStore(value);
+						if (response && response.object && response.object[0]) {
+							updateFilePath(filePath, response.object);
+						}
+					}
+				} else if (typeof data.object === "object" && data.object !== null) {
+					for (const key in data) {
+						let {value } = await processVariables(data[key]);
+						if (data) {
+							data.object[key] = value;
+						}
+					}
+					let response = await runStore(data);
+					if (response && response.object && response.object[0] && response.object[0]._id) {
+						newConfig.sources[i].object._id = response.object[0]._id;
+					}
+				}
 			}
 
-			if (
-				response.object &&
-				response.object[0] &&
-				response.object[0]._id
-			) {
-				source.object._id = response.object[0]._id;
-			}
-
-			for (const [key, value] of keys) {
-				source.object[key] = value;
-			}
-
-			updatedSources.push(source);
 		}
 
-		return updatedSources;
+		return newConfig;
 	}
+
+	async function processVariables(value) {
+		let variableMatch = /{{\s*([\w\W]+)\s*}}/g.exec(value);
+		if (!variableMatch) return { value, filePath: null };
+
+		let entry = variableMatch[1].trim();
+		if (!fs.existsSync(entry)) return { value, filePath: null };
+
+		const filePath = path.resolve(configDirectoryPath, entry);
+
+		// Check if the file path matches any of the provided match patterns
+		let isMatched = match.some((pattern) => filePath.startsWith(pattern));
+		if (!isMatched) return { value, filePath: null };
+
+		// Read the file as is
+		let content;
+		try {
+			const fileMimeType = mimeTypes[path.extname(entry)] || "text/plain";
+
+			if (fileMimeType === "application/json") {
+				// Parse JSON files
+				content = JSON.parse(fs.readFileSync(filePath, "utf8"));
+			} else if (fileMimeType === "application/javascript" || fileMimeType === "text/javascript") {
+				// For JavaScript files, require the file to execute exports
+				content = require(filePath);
+			} else {
+				// For plain strings, read as UTF-8 without conversion
+				content = fs.readFileSync(filePath, "utf8");
+			}
+		} catch (error) {
+			console.error(`Failed to process file: ${filePath}`, error);
+			return { value, filePath: null };
+		}
+
+		return { value: content, filePath };
+	}
+
+	/**
+	 * Updates the file at the given file path with the provided data.
+	 * The data is saved as a JSON string.
+	 * 
+	 * @param {string} filePath - The path of the file to update.
+	 * @param {object} data - The data to write to the file.
+	 */
+	function updateFilePath(filePath, data) {
+		try {
+			const jsonData = JSON.stringify(data, null, 4); // Format JSON with indentation
+			fs.writeFileSync(filePath, jsonData, "utf8");
+			console.log(`File updated successfully at: ${filePath}`);
+		} catch (error) {
+			console.error(`Failed to update file at: ${filePath}`, error);
+		}
+	}
+
 
 	async function runStore(data) {
 		try {
@@ -517,28 +498,12 @@ module.exports = async function file(
 	}
 
 	async function run() {
-		if (directories) await runDirectories();
+		if (directories) {
+			await runDirectories();
+		}
 
 		if (sources && sources.length) {
-			let sources = await runSources();
-			let newConfig = { ...CoCreateConfig };
-			if (directories && directories.length)
-				newConfig.directories = directories;
-
-			newConfig.sources = sources;
-
-			if (newConfig.repositories)
-				newConfig.repositories.forEach((obj) => {
-					for (const key in obj) {
-						if (!["path", "repo", "exclude"].includes(key)) {
-							delete obj[key];
-						}
-					}
-				});
-
-			delete newConfig.url;
-			delete newConfig.broadcast;
-
+			let newConfig = await runSources();
 			fs.writeFileSync(
 				configPath,
 				`module.exports = ${JSON.stringify(newConfig, null, 4)};`
