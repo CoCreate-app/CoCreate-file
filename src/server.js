@@ -258,7 +258,7 @@ module.exports = async function file(
 
 			let values = {
 				"{{name}}": name || "",
-				"{{source}}": source || "",
+				"{{source}}": Buffer.isBuffer(source) ? `data:${mimeType};base64,${source.toString('base64')}` : source || "",
 				"{{directory}}": directoryName || "",
 				"{{path}}": Path || "",
 				"{{pathname}}": pathname,
@@ -294,7 +294,7 @@ module.exports = async function file(
 				try {
 					// Call your AI translation service
 					const translations = await options.translate(
-						source,
+						Buffer.isBuffer(source) ? source.toString('utf-8') : source,
 						directory.languages
 					);
 					newObject.object.translations = translations;
@@ -315,9 +315,13 @@ module.exports = async function file(
 					);
 					if (variables) {
 						for (let variable of variables) {
+							let replacement = values[variable];
+							if (key === 'src' && variable === '{{source}}' && Buffer.isBuffer(source)) {
+								replacement = `data:${mimeType};base64,${source.toString('base64')}`;
+							}
 							newObject.object[key] = newObject.object[
 								key
-							].replace(variable, values[variable]);
+							].replace(variable, replacement);
 						}
 					}
 				}
@@ -352,25 +356,37 @@ module.exports = async function file(
 		//     console.log(...errorLog)
 	}
 
-	async function getSource(path, mimeType, isSymlink) {
-		// Define categories for encoding types
-		const base64Types = /^(image|audio|video|font|application\/octet-stream|application\/x-font-ttf|application\/x-font-woff|application\/x-font-woff2|application\/x-font-opentype|application\/x-font-truetype|application\/x-font-eot)/;
-		const binaryTypes = /^(application\/zip|application\/x-7z-compressed|application\/x-rar-compressed|application\/pdf)/;
+	async function getSource(filePath, mimeType, isSymlink) {
+		// 1. UPDATED: Includes standard font types and uses simpler matching
+		const base64MimeTypes = /^(image|audio|video|font\/(woff2?|ttf|otf|eot)|application\/vnd\.ms-fontobject|application\/x-font-.*|application\/octet-stream)/;
 
-		let readType = "utf8"; // Default to utf8
+		// We only care if it needs to be Base64-encoded for a Data URI.
+		const needsBase64 = base64MimeTypes.test(mimeType);
 
-		if (base64Types.test(mimeType)) {
-			readType = "base64";
-		} else if (binaryTypes.test(mimeType)) {
-			readType = "binary";
+		let resolvedPath = filePath;
+		if (isSymlink) {
+			// Use promises for realpath
+			resolvedPath = await realpathAsync(filePath);
 		}
 
-		if (isSymlink) path = await realpathAsync(path);
+		// 2. READ: Always read the file as a raw Buffer (omitting encoding)
+		// This gives us the raw bytes, which is the safest start for any file.
+		let fileBuffer;
+		try {
+			fileBuffer = await fs.promises.readFile(resolvedPath);
+		} catch (error) {
+			console.error(`Error reading file: ${resolvedPath}`, error);
+			return ""; // Return empty string or handle error as appropriate
+		}
 
-		let binary = fs.readFileSync(path);
-		let content = new Buffer.from(binary).toString(readType);
-
-		return content;
+		if (needsBase64) {
+			// 3. RETURN BUFFER: Return the raw buffer for binary files.
+			return fileBuffer;
+		} else {
+			// 4. HANDLE TEXT/OTHER:
+			// For files not intended for Base64, convert the Buffer to a string using 'utf8'.
+			return fileBuffer.toString('utf8');
+		}
 	}
 
 	/**
