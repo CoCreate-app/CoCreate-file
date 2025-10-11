@@ -1,3 +1,18 @@
+# [1.20.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.6...v1.20.0) (2025-10-11)
+
+
+### Bug Fixes
+
+* add error handling for translation service in file function ([262dc66](https://github.com/CoCreate-app/CoCreate-file/commit/262dc66d57c13a8948ef1afa863413c203f965bc))
+* update import statement and modify exit behavior in server function ([6e72fde](https://github.com/CoCreate-app/CoCreate-file/commit/6e72fdec3867c031e342b3faef598b661f43a620))
+
+
+### Features
+
+* add options parameter to file function for enhanced translation support ([7fac13d](https://github.com/CoCreate-app/CoCreate-file/commit/7fac13d10b8abd40584d5abc6b89d110f84db288))
+* enhance file handling by supporting base64 encoding for binary sources and improving file reading logic ([192337c](https://github.com/CoCreate-app/CoCreate-file/commit/192337c3a44d412f8a8d2c6bb1172451661eebf5))
+* enhance file processing with support for base64 and binary types, and add variable processing functionality ([eabfddf](https://github.com/CoCreate-app/CoCreate-file/commit/eabfddf2e1c36e7abd330369c1f28f90290cc1b8))
+
 ## [1.19.6](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.5...v1.19.6) (2025-09-07)
 
 
