@@ -4,6 +4,7 @@ const fs = require("fs");
 const realpathAsync = fs.promises.realpath;
 
 const path = require("path");
+const { pathToFileURL } = require("url");
 const mimeTypes = {
 	".aac": "audio/aac",
 	".abw": "application/x-abiword",
@@ -174,46 +175,60 @@ module.exports = async function file(
 	async function runDirectories() {
 		for (const directory of directories) {
 			const entry = directory.entry;
-			const exclude = directory.exclude || [];
-			await runFiles(directory, entry, exclude);
+			await runFiles(directory, entry);
 		}
 		return;
 	}
 
-	async function runFiles(directory, entry, exclude, Path, directoryName) {
+	async function runFiles(directory, entry, Path, directoryName) {
 		const entryPath = path.resolve(configDirectoryPath, entry);
 		let files = fs.readdirSync(entryPath);
-
+		let exclude = directory.exclude || [];
+		let include = directory.include || [];
 		for (let file of files) {
-			let skip = false;
-			for (let i = 0; i < exclude.length; i++) {
-				if (file.includes(exclude[i])) {
-					skip = true;
-					break;
-				}
-			}
-			if (skip) continue;
+			const filePath = path.resolve(entryPath, file);
 
 			let isDirectory;
 			let isSymlink = fs
-				.lstatSync(`${entryPath}/${file}`)
+				.lstatSync(filePath)
 				.isSymbolicLink();
 			if (isSymlink) {
-				let symlinkPath = await realpathAsync(`${entryPath}/${file}`);
+				let symlinkPath = await realpathAsync(filePath);
 				isDirectory =
 					fs.existsSync(symlinkPath) &&
 					fs.lstatSync(symlinkPath).isDirectory();
 			} else
 				isDirectory =
-					fs.existsSync(`${entryPath}/${file}`) &&
-					fs.lstatSync(`${entryPath}/${file}`).isDirectory();
+					fs.existsSync(filePath) &&
+					fs.lstatSync(filePath).isDirectory();
+
+			let skip = false;
+			for (let i = 0; i < exclude.length; i++) {
+				if (filePath.includes(exclude[i])) {
+					skip = true;
+					break;
+				}
+			}
+	
+			for (let i = 0; i < include.length; i++) {
+				if (filePath.includes(include[i])) {
+					skip = false;
+					break;
+				} else if (isDirectory) {
+					skip = "directory";
+					break;
+				} else {
+					skip = true;
+				}	
+			}
+
+			if (skip === true) continue;
 
 			let name = file;
 			let source = "";
 
 			for (let i = 0; i < match.length; i++) {
 				skip = true;
-				const filePath = path.resolve(entryPath, file);
 				if (filePath.startsWith(match[i])) {
 					skip = false;
 					break;
@@ -237,7 +252,7 @@ module.exports = async function file(
 				} else directoryName = "/";
 			}
 
-			if (exclude && exclude.includes(directoryName)) continue;
+			// if (exclude && exclude.includes(directoryName)) continue;
 
 			if (!Path) {
 				if (directoryName === "/") Path = directoryName;
@@ -248,13 +263,15 @@ module.exports = async function file(
 			if (Path === "/") pathname = Path + name;
 			else pathname = Path + "/" + name;
 
-			if (isDirectory) mimeType = "text/directory";
-			else
+			if (isDirectory) {
+				mimeType = "text/directory";
+			} else {
 				source = await getSource(
 					`${entryPath}/${file}`,
 					mimeType,
 					isSymlink
 				);
+			}
 
 			let values = {
 				"{{name}}": name || "",
@@ -262,85 +279,120 @@ module.exports = async function file(
 				"{{directory}}": directoryName || "",
 				"{{path}}": Path || "",
 				"{{pathname}}": pathname,
-				"{{content-type}}": mimeType || ""
+				"{{content-type}}": mimeType || "",
 			};
 
-			let object = { ...directory.object };
-			if (!object.name) object.name = "{{name}}";
-			if (!object.src) object.src = "{{source}}";
-			if (!object.directory) object.directory = "{{directory}}";
-			if (!object.path) object.path = "{{path}}";
-			if (!object.pathname) object.pathname = "{{pathname}}";
-			if (!object["content-type"])
-				object["content-type"] = "{{content-type}}";
-			if (
-				!object.public &&
-				object.public != false &&
-				object.public != "false"
-			)
-				object.public = "true";
-
-			let newObject = {
-				array: directory.array || "files",
-				object
+			let data = {
+				array: directory.array || "files"
 			};
 
-			if (
-				options.translate &&
-				mimeType === "text/html" &&
-				Array.isArray(directory.languages) &&
-				!object.translations
-			) {
-				try {
-					// Call your AI translation service
-					const translations = await options.translate(
-						Buffer.isBuffer(source) ? source.toString('utf-8') : source,
-						directory.languages
-					);
-					newObject.object.translations = translations;
-				} catch (err) {
-					console.error("Translation error:", err);
-					// Continue without translations
+			let isData = false;
+			if ( typeof directory.$data === "string") {
+				if (isDirectory) {
+					skip = "directory";
+				} else {
+					isData = true;
+					data = 	await getData(
+						`${entryPath}/${file}`,
+						mimeType,
+						isSymlink
+					);	
+					if (!data) continue
 				}
-			}
-
-			if (directory.storage) newObject.storage = directory.storage;
-			if (directory.database) newObject.database = directory.database;
-			if (directory.array) newObject.array = directory.array || "files";
-
-			for (const key of Object.keys(directory.object)) {
-				if (typeof directory.object[key] == "string") {
-					let variables = directory.object[key].match(
-						/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g
+			} else if ( typeof directory.object === "string") {
+				if (isDirectory) {
+					skip = "directory";
+				} else {
+					isData = true;
+					data.object = await getData(
+						`${entryPath}/${file}`,
+						mimeType,
+						isSymlink
 					);
-					if (variables) {
-						for (let variable of variables) {
-							let replacement = values[variable];
-							if (key === 'src' && variable === '{{source}}' && Buffer.isBuffer(source)) {
-								replacement = `data:${mimeType};base64,${source.toString('base64')}`;
+					if (!data.object) continue
+				}
+			} else if (typeof directory.object === "object" && directory.object !== null) {
+				data.array = directory.array || "files";
+				let object = { ...directory.object };
+				if (!object.name) object.name = "{{name}}";
+				if (!object.src) object.src = "{{source}}";
+				if (!object.directory) object.directory = "{{directory}}";
+				if (!object.path) object.path = "{{path}}";
+				if (!object.pathname) object.pathname = "{{pathname}}";
+				if (!object["content-type"])
+					object["content-type"] = "{{content-type}}";
+				if (
+					!object.public &&
+					object.public != false &&
+					object.public != "false"
+				)
+					object.public = "true";
+
+				data.object = object;
+
+				if (!data.object._id) {
+					data.$filter = {
+						query: {
+							pathname
+						}
+					};
+				}
+
+				if (
+					options.translate &&
+					mimeType === "text/html" &&
+					Array.isArray(directory.languages) &&
+					!object.translations
+				) {
+					try {
+						// Call your AI translation service
+						const translations = await options.translate(
+							Buffer.isBuffer(source) ? source.toString('utf-8') : source,
+							directory.languages
+						);
+						data.object.translations = translations;
+					} catch (err) {
+						console.error("Translation error:", err);
+						// Continue without translations
+					}
+				}
+
+				if (directory.storage) data.storage = directory.storage;
+				if (directory.database) data.database = directory.database;
+				if (directory.array) data.array = directory.array || "files";
+
+				for (const key of Object.keys(directory.object)) {
+					if (typeof directory.object[key] == "string") {
+						let variables = directory.object[key].match(
+							/{{([A-Za-z0-9_.,\[\]\-\/ ]*)}}/g
+						);
+						if (variables) {
+							for (let variable of variables) {
+								let replacement = values[variable];
+								if (key === 'src' && variable === '{{source}}' && Buffer.isBuffer(source)) {
+									replacement = `data:${mimeType};base64,${source.toString('base64')}`;
+								}
+								data.object[key] = data.object[
+									key
+								].replace(variable, replacement);
 							}
-							newObject.object[key] = newObject.object[
-								key
-							].replace(variable, replacement);
 						}
 					}
 				}
 			}
 
 			if (skip !== "directory") {
-				if (!newObject.object._id)
-					newObject.$filter = {
-						query: {
-							pathname
-						}
-					};
-
-				response = await runStore(newObject);
-				console.log(
-					`Uploaded: ${entryPath}/${file}`,
-					`To: ${pathname}`
-				);
-
+				response = await runStore(data);
+				if (isData) {
+					console.log(
+					`Saved: ${entryPath}/${file}`
+					);
+				} else {
+					console.log(
+						`Uploaded: ${entryPath}/${file}`,
+						`To: ${pathname}`
+					);
+				}
 				if (response.error) errorLog.push(response.error);
 			}
 
@@ -349,7 +401,7 @@ module.exports = async function file(
 				if (entry.endsWith("/")) newEntry = entry + name;
 				else newEntry = entry + "/" + name;
 
-				await runFiles(directory, newEntry, exclude, pathname, name);
+				await runFiles(directory, newEntry, pathname, name);
 			}
 		}
 		// if (errorLog.length)
@@ -387,6 +439,57 @@ module.exports = async function file(
 			// For files not intended for Base64, convert the Buffer to a string using 'utf8'.
 			return fileBuffer.toString('utf8');
 		}
+	}
+
+	async function getData(filePath, mimeType, isSymlink) {
+		let resolvedPath = filePath;
+		if (isSymlink) {
+			resolvedPath = await realpathAsync(filePath);
+		}
+
+		try {
+			const fileMimeType = mimeTypes[path.extname(resolvedPath)] || "text/plain";
+			if (fileMimeType === "application/json") {
+				// Parse JSON files
+				return JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
+			} else if (
+				fileMimeType === "application/javascript" ||
+				fileMimeType === "text/javascript"
+			) {
+				// Try CommonJS require first (fast path)
+				try {
+					// clear require cache to ensure fresh load
+					delete require.cache[require.resolve(resolvedPath)];
+					return require(resolvedPath);
+				} catch (err) {
+					// If require fails due to ESM syntax (export / import), fall back to dynamic import
+					const isESMSyntaxError =
+						err instanceof SyntaxError ||
+						/Unexpected token 'export'/.test(err.message) ||
+						/Cannot use import statement outside a module/.test(err.message) ||
+						/Unexpected token 'import'/.test(err.message);
+
+					if (isESMSyntaxError) {
+						try {
+							const module = await import(pathToFileURL(resolvedPath).href);
+							// return default export when present otherwise return full module
+							return module && module.default ? module.default : module;
+						} catch (impErr) {
+							console.error(`Failed to dynamic-import module: ${resolvedPath}`, impErr);
+							throw impErr;
+						}
+					}
+					// rethrow original require error if it's not an ESM issue
+					throw err;
+				}
+			} else {
+				return fs.readFileSync(resolvedPath, "utf8");
+			}
+		} catch (error) {
+			console.error(`Failed to process file: ${resolvedPath}`, error);
+			return "";
+		}
+
 	}
 
 	/**
