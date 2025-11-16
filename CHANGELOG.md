@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.20.0...v1.21.0) (2025-11-16)
+
+
+### Features
+
+* enhance file processing by adding support for include/exclude filters and implementing dynamic data retrieval for various file types ([d8a2185](https://github.com/CoCreate-app/CoCreate-file/commit/d8a2185ce6f9554aa929f285e24526a281bc0b96))
+
 # [1.20.0](https://github.com/CoCreate-app/CoCreate-file/compare/v1.19.6...v1.20.0) (2025-10-11)
 
 
