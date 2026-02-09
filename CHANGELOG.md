@@ -1,3 +1,10 @@
+## [1.21.2](https://github.com/CoCreate-app/CoCreate-file/compare/v1.21.1...v1.21.2) (2026-02-09)
+
+
+### Bug Fixes
+
+* root factory variable Module ([0143d76](https://github.com/CoCreate-app/CoCreate-file/commit/0143d76bdd4ef13106f390c3568f528a2ed1dbfc))
+
 ## [1.21.1](https://github.com/CoCreate-app/CoCreate-file/compare/v1.21.0...v1.21.1) (2026-01-17)
 
 
